@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Esperienza interattiva sul Papiro Cat. 1827/5 del Museo Egizio: restauro digitale, Ba in stile 8 bit e assistente locale per scoprire il reperto.">
+    <meta name="theme-color" content="#121212">
+    <meta property="og:title" content="Cat. 1827/5 - Museo Egizio">
+    <meta property="og:description" content="Scopri il papiro del Libro dei Morti con un'esperienza interattiva e un assistente locale.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="papiro_dopo.jpg">
+    <title>Cat. 1827/5 - Museo Egizio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #d4af37; --bright-gold: #ffdf00; --dark: #0a0a0a; --card: rgba(30, 30, 30, 0.6); --glass: rgba(255, 255, 255, 0.03); --glass-border: rgba(212, 175, 55, 0.15); }
+
+        * { box-sizing: border-box; scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--dark); }
+        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+        a:focus-visible, button:focus-visible, textarea:focus-visible, input:focus-visible {
+            outline: 2px solid var(--bright-gold);
+            outline-offset: 3px;
+        }
+
+        body { font-family: 'EB Garamond', serif; background: radial-gradient(ellipse at top, #24190c 0%, var(--dark) 100%); background-attachment: fixed; color: #e0e0e0; margin: 0; padding: 12px 15px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+
+        /* TOP BAR */
+        .top-bar { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: var(--card); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); padding: 10px 18px; border-radius: 16px; border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); }
+        .lang-switch { display: flex; gap: 8px; }
+        button.lang-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 5px 8px; cursor: pointer; border-radius: 4px; transition: 0.3s; font-family: sans-serif; display: flex; align-items: center; justify-content: center; }
+        button.lang-btn.active { background: var(--gold); color: black; }
+        .social-actions { display: flex; gap: 8px; align-items: center; }
+        .share-btn, .insta-btn { background: var(--gold); border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; }
+        .share-btn:hover, .insta-btn:hover { transform: scale(1.1); box-shadow: 0 0 10px rgba(197,160,89,0.5); }
+
+        /* COMPARISON */
+        .papyrus-frame { position: relative; width: 100%; max-width: 640px; padding: 38px 26px; margin: 0 auto; background: linear-gradient(180deg, rgba(60,40,15,0.45), rgba(20,14,5,0.45)); border: 2px solid var(--gold); border-radius: 14px; box-shadow: 0 0 0 1px rgba(0,0,0,0.6) inset, 0 6px 28px rgba(0,0,0,0.55), 0 0 24px rgba(255,215,0,0.18); }
+        .papyrus-frame::before, .papyrus-frame::after { content: "𓂀  𓆣  𓅓  𓊹  𓋹  𓏏  𓇋  𓎛  𓅱  𓂋  𓊃  𓄿  𓀀  𓆑  𓏤  𓊪  𓇳  𓋴  𓆼  𓈖"; position: absolute; left: 10px; right: 10px; height: 32px; line-height: 32px; color: var(--bright-gold); font-size: 22px; font-weight: 700; letter-spacing: 4px; text-align: center; overflow: hidden; white-space: nowrap; opacity: 1; text-shadow: 0 0 10px rgba(255,215,0,0.75), 0 0 2px #000; pointer-events: none; }
+        .papyrus-frame::before { top: 4px; border-bottom: 1px solid rgba(255,215,0,0.55); padding-bottom: 2px; }
+        .papyrus-frame::after  { bottom: 4px; border-top: 1px solid rgba(255,215,0,0.55); padding-top: 2px; }
+        .papyrus-frame .frame-side { position: absolute; top: 44px; bottom: 44px; width: 22px; display: flex; flex-direction: column; align-items: center; justify-content: space-around; color: var(--bright-gold); font-size: 20px; font-weight: 700; opacity: 1; text-shadow: 0 0 8px rgba(255,215,0,0.7), 0 0 2px #000; pointer-events: none; }
+        .papyrus-frame .frame-side.left { left: 4px; }
+        .papyrus-frame .frame-side.right { right: 4px; }
+        .papyrus-frame .frame-corner { position: absolute; width: 26px; height: 26px; border: 2px solid var(--bright-gold); opacity: 1; pointer-events: none; box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+        .papyrus-frame .frame-corner.tl { top: 3px; left: 3px; border-right: none; border-bottom: none; border-top-left-radius: 10px; }
+        .papyrus-frame .frame-corner.tr { top: 3px; right: 3px; border-left: none; border-bottom: none; border-top-right-radius: 10px; }
+        .papyrus-frame .frame-corner.bl { bottom: 3px; left: 3px; border-right: none; border-top: none; border-bottom-left-radius: 10px; }
+        .papyrus-frame .frame-corner.br { bottom: 3px; right: 3px; border-left: none; border-top: none; border-bottom-right-radius: 10px; }
+        .comparison-container { position: relative; width: 100%; max-width: 600px; height: min(90vw, 580px); overflow: hidden; border: 8px double var(--gold); border-radius: 16px; background: #000; box-shadow: 0 0 0 3px rgba(75, 47, 10, 0.8), 0 12px 40px rgba(212, 175, 55, 0.35), inset 0 0 30px rgba(255,215,0,0.2); transform: translateZ(0); will-change: transform; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .comparison-container:hover { transform: translateY(-4px) scale(1.01); box-shadow: 0 0 0 3px rgba(75, 47, 10, 0.8), 0 20px 50px rgba(212, 175, 55, 0.45), inset 0 0 30px rgba(255,215,0,0.25); }
+        /* BORDO DECORATIVO GEROGLIFICO PER LA RICOSTRUZIONE */
+        .comparison-container::before, .comparison-container::after {
+            content: "𓂀 𓃣 𓆣 𓅓 𓊹 𓋹 𓇳 𓆼 𓈖 𓏏 𓇋 𓎛 𓅱 𓂋 𓊃 𓄿 𓀀 𓆑 𓏤 𓊪 𓂀 𓃣";
+            position: absolute; left: 0; right: 0; height: 30px; line-height: 30px;
+            color: #ffe680; font-size: 21px; font-weight: 700; text-align: center;
+            background: rgba(18,11,0,0.82); z-index: 12; pointer-events: none; text-shadow: 0 0 8px rgba(255,215,0,0.85), 0 1px 1px #000;
+            letter-spacing: 7px; overflow: hidden; white-space: nowrap;
+        }
+        .comparison-container::before { top: 0; border-bottom: 2px solid var(--bright-gold); }
+        .comparison-container::after { bottom: 0; border-top: 2px solid var(--bright-gold); }
+        .papiro-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+        #after-img { clip-path: inset(0 0 0 100%); }
+
+        .swipe-line { position: absolute; top: 0; bottom: 0; left: 100%; width: 2px; background: var(--bright-gold); z-index: 9; pointer-events: none; box-shadow: 0 0 8px rgba(255,215,0,0.5); }
+
+        #slider { position: absolute; top: 0; left: 0; width: 100%; height: 100%; appearance: none; background: transparent; cursor: pointer; z-index: 10; margin: 0; touch-action: pan-y; }
+        #slider::-webkit-slider-thumb { appearance: none; width: 34px; height: 34px; background: var(--bright-gold); border: 3px solid white; border-radius: 50%; cursor: ew-resize; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
+        #slider::-moz-range-thumb { width: 34px; height: 34px; background: var(--bright-gold); border: 3px solid white; border-radius: 50%; cursor: ew-resize; }
+
+        /* HINT swipe */
+        @keyframes hintPulse {
+            0%   { transform: translateX(0) scale(1);   opacity: 1; }
+            20%  { transform: translateX(-18px) scale(1.15); opacity: 1; }
+            40%  { transform: translateX(10px) scale(1.05); opacity: 1; }
+            60%  { transform: translateX(-8px) scale(1.1);  opacity: 1; }
+            80%  { transform: translateX(4px) scale(1.02);  opacity: 1; }
+            100% { transform: translateX(0) scale(1);   opacity: 1; }
+        }
+        @keyframes hintLabelFade {
+            0%   { opacity: 0; transform: translateY(4px); }
+            15%  { opacity: 1; transform: translateY(0); }
+            75%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .swipe-hint-label {
+            position: absolute;
+            bottom: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.65);
+            color: var(--bright-gold);
+            font-family: 'Cinzel', serif;
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,215,0,0.3);
+            pointer-events: none;
+            z-index: 11;
+            white-space: nowrap;
+            animation: hintLabelFade 7s ease forwards;
+        }
+        #slider.hint-active::-webkit-slider-thumb { animation: hintPulse 1.2s ease 0.3s 1; }
+        #slider.hint-active::-moz-range-thumb     { animation: hintPulse 1.2s ease 0.3s 1; }
+
+        /* INTRO GATE */
+        .start-screen, .intro-screen, .level-two-screen, .confirm-screen, .game-over-screen { width: 100%; min-height: calc(100vh - 24px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; text-align: center; padding: 20px 0 32px; overflow-y: auto; }
+        .main-experience { width: 100%; display: none; flex-direction: column; align-items: center; }
+        .intro-screen, .level-two-screen, .confirm-screen, .game-over-screen { display: none; }
+        body.show-intro .start-screen, body.show-level-two .start-screen, body.show-confirm .start-screen, body.show-game-over .start-screen, body.show-main .start-screen { display: none; }
+        body.show-intro .intro-screen { display: flex; }
+        body.show-level-two .level-two-screen { display: flex; }
+        body.show-confirm .confirm-screen { display: flex; }
+        body.show-game-over .game-over-screen { display: flex; }
+        body.show-main .main-experience { display: flex; }
+        .museum-symbol { position: fixed; right: 12px; bottom: 12px; width: clamp(52px, 12vw, 86px); height: auto; z-index: 2500; pointer-events: none; filter: drop-shadow(0 0 8px rgba(0,0,0,0.65)); }
+        .start-button { width: min(92vw, 430px); padding: 0; border: 4px solid var(--bright-gold); border-radius: 8px; background: #000; cursor: pointer; box-shadow: 0 0 0 4px #38210a, 0 0 36px rgba(255,215,0,0.35); overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+        .start-button:hover { transform: translateY(-3px); box-shadow: 0 0 0 4px #38210a, 0 0 46px rgba(255,215,0,0.48); }
+        .start-img { width: 100%; display: block; }
+        .ba-game-card, .level-card, .confirm-card { width: min(92vw, 430px); display: grid; place-items: center; background: #0b1022; border: 4px solid var(--bright-gold); border-radius: 8px; box-shadow: 0 0 0 4px #38210a, 0 0 36px rgba(255,215,0,0.35); padding: 8px; overflow: hidden; position: relative; }
+        .ba-game-card::before, .level-card::before, .confirm-card::before { content: ""; position: absolute; inset: 0; background: linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px); background-size: 18px 18px; opacity: 0.18; pointer-events: none; }
+        .ba-game-img, .level-img, .confirm-art-img { width: 100%; height: auto; object-fit: contain; border-radius: 4px; display: block; position: relative; z-index: 1; }
+        .ba-game-img { animation: baFloat 1.8s ease-in-out infinite; }
+        @keyframes baFloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
+        .intro-question, .level-question, .confirm-question { width: min(100%, 430px); background: #1a1500; border: 1.5px solid var(--bright-gold); border-radius: 8px; padding: 18px; color: #fff; font-family: 'Cinzel', serif; font-size: clamp(1.05em, 4vw, 1.38em); letter-spacing: 1px; box-shadow: 0 0 18px rgba(255,215,0,0.12); }
+        .level-question, .confirm-question { font-size: clamp(0.88em, 3vw, 1.05em); letter-spacing: 0.3px; line-height: 1.65; }
+        .choice-actions { width: min(100%, 520px); display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .choice-card { min-height: 330px; border: 1.5px solid var(--gold); border-radius: 8px; background: var(--card); color: var(--gold); font-family: 'Cinzel', serif; font-size: clamp(1em, 3.5vw, 1.2em); letter-spacing: 1.5px; cursor: pointer; transition: transform 0.2s, background 0.2s, color 0.2s, border-color 0.2s; padding: 10px; line-height: 1.2; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 10px; overflow: hidden; }
+        .choice-card:hover { transform: translateY(-2px); background: #2a210a; border-color: var(--bright-gold); color: #fff; }
+        .choice-card img { width: 100%; height: 275px; object-fit: contain; border-radius: 6px; background: #d6a873; border: 1px solid rgba(197,160,89,0.55); }
+        .choice-card span { flex: 0 0 auto; }
+        .back-choice { min-height: 48px; padding: 0 18px; min-width: min(92vw, 430px); border: 1.5px solid var(--gold); border-radius: 8px; background: transparent; color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.9em; letter-spacing: 1.5px; cursor: pointer; transition: transform 0.2s, background 0.2s, color 0.2s; }
+        .back-choice:hover { transform: translateY(-2px); background: var(--gold); color: #000; }
+        .game-over-title { font-family: 'Cinzel', serif; color: #ff4e50; font-size: clamp(2.4em, 13vw, 5em); letter-spacing: 4px; margin: 0; text-shadow: 0 0 16px rgba(255,78,80,0.35); }
+        .laugh-smile { font-family: 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif; font-size: clamp(7rem, 34vw, 15rem); line-height: 1; filter: drop-shadow(0 0 24px rgba(255,78,80,0.3)); }
+        .game-over-subtitle { color: #aaa; font-family: sans-serif; margin: 0; }
+        .external-links { flex-wrap: wrap; }
+        .external-links .link-btn { min-width: min(48%, 140px); min-height: 48px; }
+        .map-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2200; align-items: center; justify-content: center; padding: 16px; }
+        .map-overlay.active { display: flex; }
+        .map-modal { width: min(100%, 980px); max-height: 92vh; background: #111; border: 1.5px solid var(--gold); border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.6); }
+        .map-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #333; background: #1a1500; }
+        .map-title { font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 1.5px; font-size: 0.9em; text-transform: uppercase; }
+        .map-close { background: transparent; border: none; color: #aaa; font-size: 1.6em; cursor: pointer; line-height: 1; }
+        .map-close:hover { color: var(--bright-gold); }
+        .map-img { width: 100%; max-height: 82vh; object-fit: contain; display: block; background: #f5f0e8; }
+        @media (max-width: 520px) {
+            .choice-actions { width: 100%; gap: 10px; }
+            .choice-card { min-height: 240px; padding: 8px; }
+            .choice-card img { height: 195px; }
+        }
+
+        /* META */        .meta-section { width: 100%; max-width: 600px; margin-top: 24px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-family: sans-serif; font-size: 0.85em; color: #bbb; line-height: 1.5; background: var(--card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .meta-item b { color: var(--gold); text-transform: uppercase; font-size: 0.9em; }
+        .current-loc { grid-column: span 2; margin-top: 4px; color: #aaa; font-style: italic; }
+
+        /* CONTENT */
+        .content { max-width: 600px; width: 100%; margin-top: 24px; background: var(--card); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 16px; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .catalog-num { color: var(--gold); font-size: 0.85em; letter-spacing: 4px; text-transform: uppercase; margin-bottom: 8px; font-family: 'Cinzel', serif; }
+        h2 { font-family: 'Cinzel', serif; font-weight: 600; margin-top: 0; background: linear-gradient(135deg, #fff 0%, #e6c176 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-size: clamp(1.4em, 4vw, 1.8em); border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; line-height: 1.3; text-shadow: 0px 4px 20px rgba(212, 175, 55, 0.2); }
+        p { line-height: 1.85; text-align: justify; font-size: clamp(1.15em, 3.5vw, 1.32em); color: #ccc; }
+
+        /* AUDIO */
+        .audio-btn { background: rgba(42, 42, 42, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: white; border: 1px solid var(--glass-border); width: 100%; padding: 14px; margin: 16px 0; border-radius: 50px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-family: sans-serif; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .audio-btn:hover { border-color: var(--bright-gold); transform: translateY(-2px); box-shadow: 0 8px 25px rgba(212, 175, 55, 0.25); background: rgba(50, 50, 50, 0.8); }
+        .audio-btn.speaking { border-color: var(--bright-gold); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+        .audio-btn.speaking .audio-icon { animation: audioPulse 0.8s ease-in-out infinite; }
+        @keyframes audioPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+
+        /* AI ASK */
+        .ai-section { width: 100%; max-width: 600px; margin-top: 28px; }
+        .ai-title { font-family: 'Cinzel', serif; border-bottom: 1px solid var(--gold); padding-bottom: 8px; margin-bottom: 14px; font-size: 1.1em; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
+        .ai-suggestions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 10px; }
+        @media (max-width: 500px) { .ai-suggestions { grid-template-columns: 1fr 1fr; } }
+        .ai-suggestion-btn { display: block; width: 100%; text-align: left; background: var(--card); color: #ddd; padding: 12px; border: 1px solid transparent; border-radius: 8px; font-size: 0.9em; cursor: pointer; transition: border-color 0.2s, color 0.2s; font-family: 'EB Garamond', serif; font-style: italic; line-height: 1.35; }
+        .ai-suggestion-btn:hover { border-color: var(--gold); color: #fff; }
+        .ai-form { display: flex; gap: 8px; margin-top: 10px; }
+        .ai-input { flex: 1; min-height: 48px; resize: vertical; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); border-radius: 12px; color: #fff; padding: 12px 16px; font-family: 'EB Garamond', serif; font-size: 1.1em; line-height: 1.4; transition: all 0.3s ease; }
+        .ai-input:focus { outline: none; border-color: var(--bright-gold); box-shadow: 0 0 15px rgba(212, 175, 55, 0.2); background: rgba(0,0,0,0.6); }
+        .ai-submit { background: linear-gradient(135deg, var(--gold) 0%, #aa8022 100%); color: #000; border: 1px solid #ffdf00; border-radius: 12px; padding: 8px 20px; cursor: pointer; font-family: 'Cinzel', serif; font-size: 0.85em; font-weight: bold; letter-spacing: 1.5px; min-width: 140px; display: inline-flex; align-items: center; justify-content: center; gap: 10px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 15px rgba(212, 175, 55, 0.4); transition: all 0.3s ease; }
+        .ai-submit::before { content: "𓁟"; font-size: 2.4em; line-height: 1; color: #000; font-weight: 900; text-shadow: 0 0 8px rgba(255,232,170,0.9), 0 0 2px #fff; }
+        .ai-submit::after { content: "𓏞"; font-size: 1.8em; line-height: 1; color: #000; font-weight: 900; opacity: 1; text-shadow: 0 0 6px rgba(255,232,170,0.8); }
+        .ai-submit:hover:not(:disabled) { background: linear-gradient(135deg, #ffdf00 0%, var(--gold) 100%); transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 8px 25px rgba(212, 175, 55, 0.6); }
+        .ai-submit:disabled { opacity: 0.6; cursor: default; }
+        .ai-note { margin-top: 8px; color: #888; font-family: sans-serif; font-size: 0.72em; line-height: 1.45; }
+        #ai-response { display: none; margin-bottom: 15px; }
+        .ai-scroll {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(90deg, #2b2112 0%, #e4c98f 7%, #f4e0ad 18%, #dfbd78 50%, #f5e2b1 82%, #b4873e 100%);
+            color: #2a1b09;
+            border: 1px solid rgba(197,160,89,0.9);
+            border-radius: 7px;
+            box-shadow: inset 16px 0 22px rgba(70,38,8,0.38), inset -16px 0 22px rgba(70,38,8,0.3), 0 12px 24px rgba(0,0,0,0.28);
+            padding: 0 20px;
+            max-height: 0;
+            transform: scaleY(0.08);
+            transform-origin: top center;
+            opacity: 0;
+            transition: max-height 0.9s ease, padding 0.9s ease, transform 0.9s ease, opacity 0.45s ease;
+        }
+        .ai-scroll.open { max-height: 520px; padding: 18px 20px; transform: scaleY(1); opacity: 1; }
+        .ai-scroll::before, .ai-scroll::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            width: 13px;
+            height: 100%;
+            background: linear-gradient(#7b5421, #f1d18b 18%, #8a5d25 52%, #e6c176 84%, #6d461a);
+            opacity: 0.78;
+        }
+        .ai-scroll::before { left: 0; }
+        .ai-scroll::after { right: 0; }
+        #ai-response-text { position: relative; z-index: 1; font-style: normal; color: #2a1b09; line-height: 1.75; font-size: 1.08em; }
+        .ai-loading-wrap { color: var(--gold); background: #15120d; border: 1px solid rgba(197,160,89,0.45); border-radius: 8px; padding: 14px 16px; overflow: hidden; }
+        .ai-loading-label { font-family: 'Cinzel', serif; font-size: 0.72em; letter-spacing: 1.6px; text-transform: uppercase; margin-bottom: 8px; }
+        .glyph-stream { white-space: nowrap; color: #d8b968; opacity: 0.95; font-size: 1.25em; letter-spacing: 8px; animation: glyphFlow 1.1s linear infinite; }
+        .thinking-dots::after { content: ''; animation: thinkingDots 1.2s steps(4, end) infinite; }
+        @keyframes glyphFlow { from { transform: translateX(-22%); } to { transform: translateX(8%); } }
+        @keyframes thinkingDots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75%,100% { content: '...'; } }
+        /* EXTERNAL LINKS */
+        .external-links { width: 100%; max-width: 600px; display: flex; gap: 8px; margin: 24px 0 16px 0; }
+        .link-btn { flex: 1; padding: 12px 6px; text-align: center; border-radius: 12px; text-decoration: none; font-family: sans-serif; font-weight: bold; font-size: clamp(0.6em, 1.6vw, 0.7em); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 6px; background: var(--card); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .link-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,0.4); }
+        .link-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .btn-museo { border: 1px solid var(--gold); color: var(--gold); }
+        .btn-yt { border: 1px solid #FF0000; color: #FF0000; }
+        .btn-vt { border: 1px solid #00d4ff; color: #00d4ff; }
+        .btn-museo:hover { background: var(--gold); color: black; }
+        .btn-yt:hover { background: #FF0000; color: white; }
+        .btn-vt:hover { background: #00d4ff; color: black; }
+        .btn-museo svg { fill: var(--gold); }
+        .btn-museo:hover svg { fill: black; }
+        .btn-vt svg { stroke: #00d4ff; }
+        .btn-vt:hover svg { stroke: black; }
+
+        /* FIND PAPYRUS */
+        .find-papyrus-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2100; align-items: center; justify-content: center; padding: 16px; }
+        .find-papyrus-overlay.active { display: flex; }
+        .find-papyrus-modal { width: min(100%, 900px); max-height: 92vh; background: #111; border: 1.5px solid var(--gold); border-radius: 10px; overflow: hidden; position: relative; box-shadow: 0 0 30px rgba(0,0,0,0.6); }
+        .find-papyrus-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #333; background: #1a1500; }
+        .find-papyrus-title { font-family: 'Cinzel', serif; color: var(--gold); letter-spacing: 1.5px; font-size: 0.9em; text-transform: uppercase; }
+        .find-papyrus-close { background: transparent; border: none; color: #aaa; font-size: 1.6em; cursor: pointer; line-height: 1; }
+        .find-papyrus-close:hover { color: var(--bright-gold); }
+        .find-papyrus-body { position: relative; background: #000; }
+        .find-papyrus-img { width: 100%; max-height: 72vh; object-fit: contain; display: block; }
+        .find-papyrus-callout { position: absolute; left: 68%; top: 63%; width: 25%; height: 27%; border: 2px solid var(--bright-gold); border-radius: 8px; box-shadow: 0 0 0 9999px rgba(0,0,0,0.12), 0 0 18px rgba(255,215,0,0.8); pointer-events: none; }
+        .find-papyrus-caption { padding: 12px 16px 16px; color: #ddd; font-family: sans-serif; font-size: 0.82em; line-height: 1.55; background: #111; }
+        .find-papyrus-missing { display: none; padding: 40px 18px; color: #ccc; text-align: center; font-family: sans-serif; line-height: 1.6; }
+
+        /* SHARE POPUP */
+        .share-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75); z-index: 1000;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .share-overlay.active { display: flex; }
+        .share-modal {
+            background: #1a1500; border: 1.5px solid var(--gold);
+            border-radius: 12px; padding: 24px; width: 100%; max-width: 360px;
+            position: relative;
+        }
+        .share-modal h3 {
+            font-family: 'Cinzel', serif; color: var(--gold);
+            font-size: 1em; letter-spacing: 2px; margin: 0 0 6px 0;
+            text-transform: uppercase;
+        }
+        .share-modal p { font-size: 0.85em; color: #aaa; margin: 0 0 16px 0; line-height: 1.5; }
+        .share-text-box {
+            background: #111; border: 1px solid #444; border-radius: 8px;
+            padding: 12px; font-family: 'EB Garamond', serif; font-size: 0.95em;
+            color: #eee; line-height: 1.6; margin-bottom: 12px; user-select: all;
+        }
+        .share-copy-btn {
+            width: 100%; padding: 11px; background: var(--gold); color: #000;
+            border: none; border-radius: 8px; font-family: 'Cinzel', serif;
+            font-size: 0.85em; letter-spacing: 1px; cursor: pointer;
+            transition: background 0.2s; margin-bottom: 8px;
+        }
+        .share-copy-btn:hover { background: var(--bright-gold); }
+        .share-copy-btn.copied { background: #4caf50; color: white; }
+        .share-close {
+            position: absolute; top: 12px; right: 14px;
+            background: none; border: none; color: #888;
+            font-size: 1.4em; cursor: pointer; line-height: 1;
+        }
+        .share-close:hover { color: var(--gold); }
+        .share-platforms { display: flex; gap: 8px; margin-top: 4px; }
+        .share-platform-btn {
+            flex: 1; padding: 9px 5px; border-radius: 8px; border: 1px solid #444;
+            background: #111; color: #ccc; font-family: sans-serif; font-size: 0.75em;
+            cursor: pointer; transition: border-color 0.2s, color 0.2s; text-align: center;
+        }
+        .share-platform-btn:hover { border-color: var(--gold); color: #fff; }
+
+        .donation-box { width: 100%; max-width: 600px; margin: 16px 0; padding: 18px 20px; border: 1px solid var(--glass-border); border-radius: 16px; background: rgba(42, 31, 16, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: space-between; gap: 12px; font-family: sans-serif; box-shadow: 0 8px 32px rgba(0,0,0,0.3); transition: transform 0.3s ease, box-shadow 0.3s ease; }
+        .donation-box:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(212, 175, 55, 0.2); }
+        .donation-box span { color: #fff; font-family: 'Cinzel', serif; font-size: clamp(0.9em, 3vw, 1.1em); letter-spacing: 1px; font-weight: bold; }
+        .donation-box a { flex: 0 0 auto; color: #000; background: linear-gradient(135deg, var(--gold) 0%, #aa8022 100%); border: 1px solid #ffdf00; border-radius: 10px; padding: 10px 16px; text-decoration: none; font-family: 'Cinzel', serif; font-size: 0.85em; font-weight: bold; letter-spacing: 1px; transition: all 0.3s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 4px 15px rgba(212, 175, 55, 0.3); }
+        .donation-box a:hover { background: linear-gradient(135deg, #ffdf00 0%, var(--gold) 100%); transform: translateY(-2px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 8px 25px rgba(212, 175, 55, 0.5); }
+        /* HASHTAG FOOTER */
+        .hashtag-footer { width: 100%; max-width: 600px; text-align: center; padding: 10px 0 40px 0; }
+        .hashtag-footer a { font-family: 'Cinzel', serif; font-size: 0.8em; letter-spacing: 3px; color: var(--gold); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; }
+        .hashtag-footer a:hover { opacity: 1; }
+
+        /* MAGIC BUTTON */
+        .magic-btn-container { width: 100%; max-width: 600px; margin-top: 12px; }
+        .magic-btn {
+            width: 100%; padding: 16px;
+            background: linear-gradient(135deg, #241804 0%, #4a3200 100%);
+            border: 1px solid var(--bright-gold);
+            color: var(--bright-gold);
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.9em, 2.5vw, 1.1em);
+            font-weight: bold;
+            letter-spacing: 3px;
+            border-radius: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative; overflow: hidden;
+            box-shadow: 0 4px 20px rgba(212, 175, 55, 0.2);
+        }
+        .magic-btn:hover:not(:disabled) { 
+            background: linear-gradient(135deg, #382406 0%, #6b4a00 100%); 
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.5), inset 0 0 15px rgba(255, 215, 0, 0.3); 
+            color: #fff;
+        }
+        .magic-btn:disabled { opacity: 0.6; cursor: default; }
+        .magic-btn .sparkle { font-size: 1.2em; transition: transform 0.3s; }
+        .magic-btn:hover:not(:disabled) .sparkle { transform: rotate(20deg) scale(1.2); }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
+        .magic-btn.animating::after {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent);
+            animation: shimmer 1.2s infinite;
+        }
+
+        /* ZOOM sul papiro */
+        .comparison-container.zoomed { cursor: zoom-out; }
+        .comparison-container.zoomed .papiro-img { transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%); transform: scale(2.5); transition: transform 0.3s ease; }
+        .comparison-container .papiro-img { transition: transform 0.3s ease; }
+        .zoom-hint { position: absolute; bottom: 34px; right: 10px; background: rgba(0,0,0,0.6); color: var(--bright-gold); font-family: 'Cinzel', serif; font-size: 0.6em; letter-spacing: 1px; padding: 4px 8px; border-radius: 10px; pointer-events: none; z-index: 11; opacity: 0.8; }
+
+        /* THUMBNAIL STRIP sotto il papiro */
+        .thumb-strip { width: 100%; max-width: 600px; display: flex; gap: 12px; margin-top: 16px; }
+        .thumb-item { flex: 1; cursor: pointer; border-radius: 12px; overflow: hidden; border: 1px solid var(--glass-border); transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); position: relative; background: var(--card); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .thumb-item:hover { border-color: var(--bright-gold); transform: translateY(-4px) scale(1.02); box-shadow: 0 8px 25px rgba(212, 175, 55, 0.3); }
+        .thumb-item img { width: 100%; height: 80px; object-fit: cover; display: block; opacity: 0.85; transition: opacity 0.2s; }
+        .thumb-item:hover img { opacity: 1; }
+        .thumb-label { font-family: 'Cinzel', serif; font-size: 0.55em; letter-spacing: 1px; color: var(--gold); text-align: center; padding: 6px 4px; text-transform: uppercase; line-height: 1.3; background: rgba(0,0,0,0.6); }
+
+        /* LIGHTBOX */
+        .lightbox-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; align-items: center; justify-content: center; padding: 16px; flex-direction: column; gap: 12px; }
+        .lightbox-overlay.active { display: flex; }
+        .lightbox-img { max-width: 100%; max-height: 80vh; object-fit: contain; border: 1px solid var(--gold); border-radius: 6px; }
+        .lightbox-caption { font-family: 'Cinzel', serif; font-size: 0.7em; letter-spacing: 2px; color: var(--gold); text-align: center; opacity: 0.8; }
+        .lightbox-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: #aaa; font-size: 2em; cursor: pointer; line-height: 1; }
+        .lightbox-close:hover { color: var(--bright-gold); }
+
+        /* RETRO TEXT - dentro .content */
+        .retro-block { margin-top: 22px; padding-top: 18px; border-top: 1px solid #2a2a2a; }
+        .retro-block-title { font-family: 'Cinzel', serif; font-size: 0.8em; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; opacity: 0.9; }
+        .retro-block p { font-size: 0.95em; color: #aaa; margin: 0; }
+
+        /* SCROLL FADE-IN */
+        .fade-in-section { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .fade-in-section.visible { opacity: 1; transform: translateY(0); }
+
+        /* MAGIC COMPLETE PULSE */
+        @keyframes magicComplete { 0%,100% { box-shadow: 0 0 0 rgba(255,215,0,0); } 50% { box-shadow: 0 0 30px rgba(255,215,0,0.4); } }
+        .magic-complete { animation: magicComplete 0.6s ease 2; }
+        @media (max-width: 420px) {
+            body { padding: 10px; }
+            .top-bar { margin-bottom: 10px; }
+            button.lang-btn { padding: 4px 6px; }
+            .share-btn, .insta-btn { width: 30px; height: 30px; }
+            .ai-suggestions { grid-template-columns: 1fr; }
+            .ai-form { flex-direction: column; }
+            .ai-submit { min-height: 42px; }
+            .external-links { gap: 5px; }
+            .find-papyrus-callout { left: 64%; top: 61%; width: 32%; height: 30%; }
+            .link-btn { font-size: 0.58em; padding: 9px 3px; }
+            p { font-size: 1.13em; }
+        }
+        @media (max-width: 360px) {
+            .choice-card { min-height: 210px; }
+            .choice-card img { height: 168px; }
+            .level-question, .confirm-question { font-size: 0.82em; padding: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <img class="museum-symbol" src="simbolo.png" alt="Museo Egizio" loading="lazy" decoding="async">
+
+    <section class="start-screen" aria-label="Schermata iniziale">
+        <button class="start-button" type="button" onclick="openIntro()" aria-label="Inizia Me Scripta Invaders">
+            <img class="start-img" src="screen.jpg" alt="Schermata iniziale Me Scripta Invaders, premi per iniziare">
+        </button>
+    </section>
+
+    <section class="intro-screen" aria-label="Primo livello">
+        <div class="ba-game-card" aria-hidden="true">
+            <img class="ba-game-img" src="Bà 8bit livello 0.png" alt="Ba spirit livello 0 in stile 8 bit">
+        </div>
+        <div class="intro-question">Vuoi sapere chi sono?</div>
+        <div class="choice-actions">
+            <button class="choice-card" type="button" onclick="showLevelTwo()"><span>SI</span><img src="si1.JPG" alt="Sì - scopri i segreti oltre il tempo" loading="lazy" decoding="async"></button>
+            <button class="choice-card" type="button" onclick="showGameOver('intro')"><span>NO</span><img src="no1.JPG" alt="No - il faraone non dimenticherà" loading="lazy" decoding="async"></button>
+        </div>
+        <button class="back-choice" type="button" onclick="backToStart()">← INDIETRO</button>
+    </section>
+
+    <section class="level-two-screen" aria-label="Secondo livello">
+        <div class="level-card" aria-hidden="true">
+            <img class="level-img" src="secondo livello.jpg" alt="Secondo livello del Ba in stile 8 bit" loading="lazy" decoding="async">
+        </div>
+        <div class="level-question">BENE!!! 🥰 Non chiamarmi solo "anima": sono la tua forza vitale. Mi vedrai come un uccello a testa umana, libero di volare fuori dalla tomba per visitare i tuoi luoghi cari o unirmi al viaggio eterno di Ra. All'inizio ero un dono solo per i faraoni, con il passare dei secoli sono diventato un diritto per ogni essere umano che desiderasse sopravvivere al tempo…<br><br>CONTINUI IL VIAGGIO?</div>
+        <div class="choice-actions">
+            <button class="choice-card" type="button" onclick="showConfirm()"><span>SI</span><img src="si2.JPG" alt="Sì - saggezza egizia" loading="lazy" decoding="async"></button>
+            <button class="choice-card" type="button" onclick="showGameOver('level-two')"><span>NO</span><img src="no2.JPG" alt="No - gli dei hanno memoria lunga" loading="lazy" decoding="async"></button>
+        </div>
+        <button class="back-choice" type="button" onclick="openIntro()">← INDIETRO</button>
+    </section>
+
+    <section class="confirm-screen" aria-label="Terzo livello">
+        <div class="confirm-card" aria-hidden="true">
+            <img class="confirm-art-img" src="Bà 8bit Livello1.png" alt="Ba spirit livello 1 in stile 8 bit" loading="lazy" decoding="async">
+        </div>
+        <div class="confirm-question">OTTIMO!!! 😍 Devi sapere che io non agisco da solo; la tua identità eterna si basa anche su:<br><br><b>Il Ka:</b> la tua forza vitale, l'energia che sostiene la tua esistenza e che chiede di essere nutrita attraverso le offerte.<br><br><b>L'Akh:</b> il tuo spirito trasfigurato, la forma luminosa e finale che raggiungerai solo dopo aver superato i riti corretti.<br><br>VUOI CHE TI MOSTRI DOVE TROVARMI?</div>
+        <div class="choice-actions">
+            <button class="choice-card" type="button" onclick="confirmYes()"><span>SI</span><img src="si3.JPG" alt="Sì - sblocca la saggezza del tempio" loading="lazy" decoding="async"></button>
+            <button class="choice-card" type="button" onclick="showGameOver('confirm')"><span>NO</span><img src="no3.JPG" alt="No - preghiera carestia e pestilenza" loading="lazy" decoding="async"></button>
+        </div>
+        <button class="back-choice" type="button" onclick="showLevelTwo()">← INDIETRO</button>
+    </section>
+
+    <section class="game-over-screen" aria-label="Game over">
+        <h1 class="game-over-title">GAME OVER</h1>
+        <div class="laugh-smile" aria-hidden="true">😆</div>
+        <p class="game-over-subtitle">Hai scelto di non scoprire il Ba.</p>
+        <button class="back-choice" type="button" onclick="backFromGameOver()">← INDIETRO</button>
+    </section>
+
+    <main class="main-experience" aria-label="Scheda del papiro">
+
+    <div class="top-bar">
+        <div class="lang-switch">
+            <button id="btn-it" class="lang-btn active" onclick="changeLang('it')" aria-label="Lingua italiana">
+                <svg width="25px" height="25px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                    <path style="fill:#73AF00;" d="M38.345,88.273C17.167,88.273,0,105.44,0,126.618v258.759c0,21.177,17.167,38.345,38.345,38.345 h132.322V88.273H38.345z"/>
+                    <rect x="170.67" y="88.277" style="fill:#F5F5F5;" width="170.67" height="335.45"/>
+                    <path style="fill:#FF4B55;" d="M473.655,88.273H341.333v335.448h132.322c21.177,0,38.345-17.167,38.345-38.345V126.618 C512,105.44,494.833,88.273,473.655,88.273z"/>
+                </svg>
+            </button>
+            <button id="btn-en" class="lang-btn" onclick="changeLang('en')" aria-label="English language">
+                <svg width="25px" height="25px" viewBox="0 -4 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_503_2952)">
+                    <rect width="28" height="20" rx="2" fill="white"/>
+                    <mask id="mask0_503_2952" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="28" height="20">
+                    <rect width="28" height="20" rx="2" fill="white"/>
+                    </mask>
+                    <g mask="url(#mask0_503_2952)">
+                    <rect width="28" height="20" fill="#0A17A7"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M-1.28244 -1.91644L10.6667 6.14335V-1.33333H17.3334V6.14335L29.2825 -1.91644L30.7737 0.294324L21.3263 6.66667H28V13.3333H21.3263L30.7737 19.7057L29.2825 21.9165L17.3334 13.8567V21.3333H10.6667V13.8567L-1.28244 21.9165L-2.77362 19.7057L6.67377 13.3333H2.95639e-05V6.66667H6.67377L-2.77362 0.294324L-1.28244 -1.91644Z" fill="white"/>
+                    <path d="M18.668 6.33219L31.3333 -2" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path d="M20.0128 13.6975L31.3666 21.3503" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path d="M8.00555 6.31046L-3.83746 -1.67099" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path d="M9.29006 13.6049L-3.83746 22.3105" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 12H12V20H16V12H28V8H16V0H12V8H0V12Z" fill="#E6273E"/>
+                    </g>
+                    </g>
+                    <defs>
+                    <clipPath id="clip0_503_2952">
+                    <rect width="28" height="20" rx="2" fill="white"/>
+                    </clipPath>
+                    </defs>
+                </svg>
+            </button>
+        </div>
+        <div class="social-actions">
+            <a href="#" class="insta-btn" onclick="shareToInstagram(event)" aria-label="Condividi su Instagram">
+                <svg width="22" height="22" viewBox="0 0 3364.7 3364.7" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient id="grad0" cx="217.76" cy="3290.99" r="4271.92" gradientUnits="userSpaceOnUse"><stop offset=".09" stop-color="#fa8f21"/><stop offset=".78" stop-color="#d82d7e"/></radialGradient>
+                        <radialGradient id="grad1" cx="2330.61" cy="3182.95" r="3759.33" gradientUnits="userSpaceOnUse"><stop offset=".64" stop-color="#8c3aaa" stop-opacity="0"/><stop offset="1" stop-color="#8c3aaa"/></radialGradient>
+                    </defs>
+                    <path d="M853.2,3352.8c-200.1-9.1-308.8-42.4-381.1-70.6-95.8-37.3-164.1-81.7-236-153.5S119.7,2988.6,82.6,2892.8c-28.2-72.3-61.5-181-70.6-381.1C2,2295.4,0,2230.5,0,1682.5s2.2-612.8,11.9-829.3C21,653.1,54.5,544.6,82.5,472.1,119.8,376.3,164.3,308,236,236c71.8-71.8,140.1-116.4,236-153.5C544.3,54.3,653,21,853.1,11.9,1069.5,2,1134.5,0,1682.3,0c548,0,612.8,2.2,829.3,11.9,200.1,9.1,308.6,42.6,381.1,70.6,95.8,37.1,164.1,81.7,236,153.5s116.2,140.2,153.5,236c28.2,72.3,61.5,181,70.6,381.1,9.9,216.5,11.9,281.3,11.9,829.3,0,547.8-2,612.8-11.9,829.3-9.1,200.1-42.6,308.8-70.6,381.1-37.3,95.8-81.7,164.1-153.5,235.9s-140.2,116.2-236,153.5c-72.3,28.2-181,61.5-381.1,70.6-216.3,9.9-281.3,11.9-829.3,11.9-547.8,0-612.8-1.9-829.1-11.9" fill="url(#grad0)"/>
+                    <path d="M853.2,3352.8c-200.1-9.1-308.8-42.4-381.1-70.6-95.8-37.3-164.1-81.7-236-153.5S119.7,2988.6,82.6,2892.8c-28.2-72.3-61.5-181-70.6-381.1C2,2295.4,0,2230.5,0,1682.5s2.2-612.8,11.9-829.3C21,653.1,54.5,544.6,82.5,472.1,119.8,376.3,164.3,308,236,236c71.8-71.8,140.1-116.4,236-153.5C544.3,54.3,653,21,853.1,11.9,1069.5,2,1134.5,0,1682.3,0c548,0,612.8,2.2,829.3,11.9,200.1,9.1,308.6,42.6,381.1,70.6,95.8,37.1,164.1,81.7,236,153.5s116.2,140.2,153.5,236c28.2,72.3,61.5,181,70.6,381.1,9.9,216.5,11.9,281.3,11.9,829.3,0,547.8-2,612.8-11.9,829.3-9.1,200.1-42.6,308.8-70.6,381.1-37.3,95.8-81.7,164.1-153.5,235.9s-140.2,116.2-236,153.5c-72.3,28.2-181,61.5-381.1,70.6-216.3,9.9-281.3,11.9-829.3,11.9-547.8,0-612.8-1.9-829.1-11.9" fill="url(#grad1)"/>
+                    <path d="M1269.25,1689.52c0-230.11,186.49-416.7,416.6-416.7s416.7,186.59,416.7,416.7-186.59,416.7-416.7,416.7-416.6-186.59-416.6-416.7m-225.26,0c0,354.5,287.36,641.86,641.86,641.86s641.86-287.36,641.86-641.86-287.36-641.86-641.86-641.86-287.36-641.86-641.86-641.86-287.36-641.86-641.86-641.86-287.36-641.86-641.86-641.86S1044,1335,1044,1689.52m1159.13-667.31a150,150,0,1,0,150.06-149.94h-0.06a150.07,150.07,0,0,0-150,149.94M1180.85,2707c-121.87-5.55-188.11-25.85-232.13-43-58.36-22.72-100-49.78-143.78-93.5s-70.88-85.32-93.5-143.68c-17.16-44-37.46-110.26-43-232.13-6.06-131.76-7.27-171.34-7.27-505.15s1.31-373.28,7.27-505.15c5.55-121.87,26-188,43-232.13,22.72-58.36,49.78-100,93.5-143.78s85.32-70.88,143.78-93.5c44-17.16,110.26-37.46,232.13-43,131.76-6.06,171.34-7.27,505-7.27S2059.13,666,2191,672c121.87,5.55,188,26,232.13,43,58.36,22.62,100,49.78,143.78,93.5s70.78,85.42,93.5,143.78c17.16,44,37.46,110.26,43,232.13,6.06,131.87,7.27,171.34,7.27,505.15s-1.21,373.28-7.27,505.15c-5.55,121.87-25.95,188.11-43,232.13-22.72,58.36-49.78,100-93.5,143.68s-85.42,70.78-143.78,93.5c-44,17.16-110.26,37.46-232.13,43-131.76,6.06-171.34,7.27-505.15,7.27s-373.28-1.21-505-7.27M1170.5,447.09c-133.07,6.06-224,27.16-303.41,58.06-82.19,31.91-151.86,74.72-221.43,144.18S533.39,788.47,501.48,870.76c-30.9,79.46-52,170.34-58.06,303.41-6.16,133.28-7.57,175.89-7.57,515.35s1.41,382.07,7.57,515.35c6.06,133.08,27.16,223.95,58.06,303.41,31.91,82.19,74.62,152,144.18,221.43s139.14,112.18,221.43,144.18c79.56,30.9,170.34,52,303.41,58.06,133.35,6.06,175.89,7.57,515.35,7.57s382.07-1.41,515.35-7.57c133.08-6.06,223.95-27.16,303.41-58.06,82.19-32,151.86-74.72,221.43-144.18s112.18-139.24,144.18-221.43c30.9-79.46,52.1-170.34,58.06-303.41,6.06-133.38,7.47-175.89,7.47-515.35s-1.41-382.07-7.47-515.35c-6.06-133.08-27.16-224-58.06-303.41-32-82.19-74.72-151.86-144.18-221.43S2586.8,537.06,2504.71,505.15c-79.56-30.9-170.44-52.1-303.41-58.06C2068,441,2025.41,439.52,1686,439.52s-382.1,1.41-515.45,7.57" fill="#ffffff"/>
+                </svg>
+            </a>
+            <a href="#" class="insta-btn" onclick="shareToTiktok(event)" aria-label="Condividi su TikTok">
+                <svg width="22" height="22" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg" style="border-radius:50%">
+                    <g clip-rule="evenodd" fill-rule="evenodd">
+                        <path d="M25 0h200c13.808 0 25 11.192 25 25v200c0 13.808-11.192 25-25 25H25c-13.808 0-25-11.192-25-25V25C0 11.192 11.192 0 25 0z" fill="#010101"/>
+                        <path d="M161.167 81.186c10.944 7.819 24.352 12.42 38.832 12.42V65.755a39.26 39.26 0 0 1-8.155-.853v21.923c-14.479 0-27.885-4.601-38.832-12.42v56.835c0 28.432-23.06 51.479-51.505 51.479-10.613 0-20.478-3.207-28.673-8.707C82.187 183.57 95.23 189.5 109.66 189.5c28.447 0 51.508-23.047 51.508-51.48V81.186zm10.06-28.098c-5.593-6.107-9.265-14-10.06-22.726V26.78h-7.728c1.945 11.09 8.58 20.565 17.788 26.308zm-80.402 99.107a23.445 23.445 0 0 1-4.806-14.256c0-13.004 10.548-23.547 23.561-23.547a23.6 23.6 0 0 1 7.147 1.103V87.022a51.97 51.97 0 0 0-8.152-.469v22.162a23.619 23.619 0 0 0-7.15-1.103c-13.013 0-23.56 10.543-23.56 23.548 0 9.195 5.272 17.157 12.96 21.035z" fill="#ee1d52"/>
+                        <path d="M153.012 74.405c10.947 7.819 24.353 12.42 38.832 12.42V64.902c-8.082-1.72-15.237-5.942-20.617-11.814-9.208-5.743-15.843-15.218-17.788-26.308H133.14v111.239c-.046 12.968-10.576 23.468-23.561 23.468-7.652 0-14.45-3.645-18.755-9.292-7.688-3.878-12.96-11.84-12.96-21.035 0-13.005 10.547-23.548 23.56-23.548 2.493 0 4.896.388 7.15 1.103V86.553c-27.945.577-50.42 23.399-50.42 51.467 0 14.011 5.597 26.713 14.68 35.993 8.195 5.5 18.06 8.707 28.673 8.707 28.445 0 51.505-23.048 51.505-51.479z" fill="#ffffff"/>
+                        <path d="M191.844 64.902v-5.928a38.84 38.84 0 0 1-20.617-5.887 38.948 38.948 0 0 0 20.617 11.815zM153.439 26.78a39.524 39.524 0 0 1-.427-3.198V20h-28.028v111.24c-.045 12.967-10.574 23.467-23.56 23.467-3.813 0-7.412-.904-10.6-2.512 4.305 5.647 11.103 9.292 18.755 9.292 12.984 0 23.515-10.5 23.561-23.468V26.78zm-44.864 59.773v-6.311a51.97 51.97 0 0 0-7.067-.479C73.06 79.763 50 102.811 50 131.24c0 17.824 9.063 33.532 22.835 42.772-9.083-9.28-14.68-21.982-14.68-35.993 0-28.067 22.474-50.889 50.42-51.466z" fill="#69c9d0"/>
+                    </g>
+                </svg>
+            </a>
+            <button class="share-btn" onclick="sharePage(event)" aria-label="Condividi questa scheda">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="comparison-container">
+        <img src="papiro_prima.jpg" class="papiro-img" id="before-img" fetchpriority="high">
+        <img src="papiro_dopo.jpg" class="papiro-img" id="after-img" fetchpriority="high">
+        <div class="swipe-line" id="swipe-line"></div>
+        <input type="range" min="0" max="100" value="100" id="slider" aria-label="Confronta papiro frammentario e ricostruzione digitale">
+        <div class="swipe-hint-label" id="swipe-hint">← scorri →</div>
+        <div class="zoom-hint">🔍 doppio tap per zoom</div>
+    </div>
+
+    <div class="magic-btn-container">
+        <button class="magic-btn" id="magic-btn" onclick="createMagic()">
+            <span class="sparkle">✨</span>
+            <span id="magic-btn-text">CREA LA MAGIA</span>
+            <span class="sparkle">✨</span>
+        </button>
+    </div>
+
+    </div>
+
+    <!-- THUMBNAIL STRIP -->
+    <div class="thumb-strip">
+        <div class="thumb-item" onclick="openLightbox('papiro_verso_1.jpg', 'retro-caption')">
+            <img src="papiro_verso_1.jpg" alt="Retro del papiro" onerror="this.src='https://placehold.co/600x400?text=Retro+del+Papiro'" loading="lazy" decoding="async">
+            <div class="thumb-label" id="thumb-label-retro">Il Retro del Papiro</div>
+        </div>
+        <div class="thumb-item" onclick="openLightbox('Ger18275.png', 'glyph-caption')">
+            <img src="Ger18275.png" alt="Schema geroglifici" style="object-fit:contain; background:#f5f0e8;" onerror="this.src='https://placehold.co/600x400?text=Schema+Geroglifici'" loading="lazy" decoding="async">
+            <div class="thumb-label" id="thumb-label-glyph">Schema Geroglifici Ricostruiti</div>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox(event)">
+        <button class="lightbox-close" onclick="closeLightbox()" aria-label="Chiudi immagine ingrandita">✕</button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="">
+        <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+
+    <div class="meta-section fade-in-section">
+        <div class="meta-item"><b id="meta-prov-lab">Provenienza:</b><br><span id="meta-prov-val">Tebe (?)</span></div>
+        <div class="meta-item"><b id="meta-acq-lab">Acquisizione:</b><br><span id="meta-acq-val">Bernardino Drovetti - 1824</span></div>
+        <div class="meta-item"><b id="meta-dyn-lab">Dinastia:</b><br><span id="meta-dyn-val">19ª (1292-1191 a.C.)</span></div>
+        <div class="meta-item"><b id="meta-base-lab">Datazione su base:</b><br><span id="meta-base-val">Paleografia; paralleli testuali; scrittura retrograda</span></div>
+        <div class="meta-item"><b>Material:</b><br>Cyperus Papyrus</div>
+        <div class="meta-item"><b id="meta-size-lab">Misure:</b><br>360 x 273 mm</div>
+        <div class="current-loc"><b id="meta-loc-lab">Posizione attuale:</b> <span id="meta-loc-val">Galleria della Scrittura - sezione 9/4</span></div>
+    </div>
+
+    <div class="content fade-in-section">
+        <div class="catalog-num">Cat. 1827/5</div>
+        <h2 id="title">Papiro con due capitoli del Libro dei Morti</h2>
+        <button class="audio-btn" id="audio-btn" onclick="speakText()">
+            <span class="audio-icon">🔊</span> <span id="audio-text">Ascolta la spiegazione</span>
+        </button>
+        <div id="desc-container">
+            <p id="desc-main"></p>
+            <p id="desc-details" style="font-size: 1.08em; color: #aaa; border-top: 1px inset #333; padding-top: 10px;"></p>
+        </div>
+        <div class="retro-block">
+            <div class="retro-block-title" id="retro-block-title">Il Retro del Papiro</div>
+            <p id="verso-text"></p>
+        </div>
+    </div>
+
+    <div class="ai-section fade-in-section">
+        <h3 class="ai-title" id="faq-section-title">Chiedi all'AI</h3>
+        <div class="ai-suggestions" id="ai-suggestions"></div>
+        <div class="ai-response" id="ai-response"><div class="ai-scroll" id="ai-scroll"><div id="ai-response-text"></div></div></div>
+        <div class="ai-form">
+            <textarea class="ai-input" id="ai-question" rows="2" placeholder="Fai una domanda sul papiro..."></textarea>
+            <button class="ai-submit" id="ai-submit" onclick="askGemini()" style="font-weight: bold; font-size: 1.2em; display: flex; align-items: center; justify-content: center; gap: 10px;">𓃣 𓂀 CHIEDI</button>
+        </div>
+        <div class="ai-note" id="ai-note">L'assistente risponde usando le informazioni della scheda e una ricerca locale per parole chiave.</div>
+    </div>
+
+    <div class="external-links fade-in-section">
+        <a href="https://museoegizio.orpheo.app/" target="_blank" rel="noopener noreferrer" class="link-btn btn-museo">
+            <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M483.5 57l-10 30h-147l-10-30zm-288 0l-10 30h-147l-10-30zm260.4 48l30.2 302H445l-.2-210-32.8-73.1-32.8 73.1-.2 210h-18V199h-26.3l9.4-94zm-288 0l9.4 94H151v208h-18l-.2-210-32.8-73.1L67.2 197 67 407H25.9l30.2-302zM412 164.1l9.4 18.9h-18.8zm-312 0l9.4 18.9H90.6zM427 201v206h-30V201zm-312 0v206H85V201zm228 16v30H169v-30zm0 48v142h-30V295H199v112h-30V265zm144 160v62H342.1l-24.8-62zm-189.1 0l8.4 21H205.7l8.4-21zm-103.2 0l-24.8 62H25v-62zm118.8 39l9.2 23H189.3l9.2-23z"/></svg>
+            WEB APP MUSEO
+        </a>
+        <a href="https://www.youtube.com/watch?v=IhzhQZCx-rU" target="_blank" rel="noopener noreferrer" class="link-btn btn-yt">
+            <svg viewBox="0 -7 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g id="Color-" transform="translate(-200.000000, -368.000000)" fill="#CE1312">
+                        <path d="M219.044,391.269916 L219.0425,377.687742 L232.0115,384.502244 L219.044,391.269916 Z M247.52,375.334163 C247.52,375.334163 247.0505,372.003199 245.612,370.536366 C243.7865,368.610299 241.7405,368.601235 240.803,368.489448 C234.086,368 224.0105,368 224.0105,368 L223.9895,368 C223.9895,368 213.914,368 207.197,368.489448 C206.258,368.601235 204.2135,368.610299 202.3865,370.536366 C200.948,372.003199 200.48,375.334163 200.48,375.334163 C200.48,375.334163 200,379.246723 200,383.157773 L200,386.82561 C200,390.73817 200.48,394.64922 200.48,394.64922 C200.48,394.64922 200.948,397.980184 202.3865,399.447016 C204.2135,401.373084 206.612,401.312658 207.68,401.513574 C211.52,401.885191 224,402 224,402 C224,402 234.086,401.984894 240.803,401.495446 C241.7405,401.382148 243.7865,401.373084 245.612,399.447016 C247.0505,397.980184 247.52,394.64922 247.52,394.64922 C247.52,394.64922 248,390.73817 248,386.82561 L248,383.157773 C248,379.246723 247.52,375.334163 247.52,375.334163 L247.52,375.334163 Z" id="Youtube"></path>
+                    </g>
+                </g>
+            </svg>
+            DIETRO LE QUINTE
+        </a>
+        <a href="#trova-papiro" class="link-btn btn-vt" onclick="openFindPapyrus(event)">
+            <svg viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:none;stroke-miterlimit:10;stroke-width:1.95px;}</style></defs><path class="cls-1" d="M6.14,17.59A34.11,34.11,0,0,1,12,17.11a34.11,34.11,0,0,1,5.86.48"/><line class="cls-1" x1="22.73" y1="20.04" x2="22.73" y2="4.43"/><line class="cls-1" x1="1.27" y1="20.04" x2="1.27" y2="4.43"/><path class="cls-1" d="M1.27,20c0,1,1.94,1.93,4.87,2.46V6.89C3.21,6.36,1.27,5.46,1.27,4.43,1.27,2.81,6.07,1.5,12,1.5S22.73,2.81,22.73,4.43c0,1-1.94,1.93-4.87,2.46V22.5c2.93-.53,4.87-1.42,4.87-2.46"/><polygon class="cls-1" points="12.98 10.28 11.02 11.26 11.02 9.31 12.98 10.28 12.98 10.28"/></svg>
+            TROVA IL PAPIRO DENTRO IL MUSEO
+        </a>
+        <a href="#mappa-torino" class="link-btn btn-vt" onclick="openMap(event)">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22s7-6.1 7-13A7 7 0 0 0 5 9c0 6.9 7 13 7 13z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="9" r="2.5" fill="currentColor"/></svg>
+            SCOPRI GLI ALTRI IN TORINO
+        </a>
+    </div>
+
+
+    <div class="donation-box fade-in-section">
+        <span>ADOTTA UN PAPIRO?</span>
+        <a href="https://dona.museoegizio.it/" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 8px;">DONA ORA 📜</a>
+    </div>
+    <div class="hashtag-footer">
+        <a href="https://www.instagram.com/explore/tags/mescripta/" target="_blank" rel="noopener noreferrer">#ME-Scripta</a>
+    </div>
+
+    <!-- FIND PAPYRUS POPUP -->
+    <div class="find-papyrus-overlay" id="find-papyrus-overlay" onclick="closeFindPapyrus(event)">
+        <div class="find-papyrus-modal">
+            <div class="find-papyrus-head">
+                <div class="find-papyrus-title" id="find-papyrus-title">Trova il papiro in sala</div>
+                <button class="find-papyrus-close" onclick="closeFindPapyrus()" aria-label="Chiudi trova il papiro">✕</button>
+            </div>
+            <div class="find-papyrus-body">
+                <img class="find-papyrus-img" id="find-papyrus-img" src="sala_papiro.jpg.png" alt="Galleria della Scrittura - posizione del papiro" onerror="showMissingPapyrusImage()" loading="lazy" decoding="async">
+                <div class="find-papyrus-callout" aria-hidden="true"></div>
+                <div class="find-papyrus-missing" id="find-papyrus-missing">Immagine della sala non disponibile: controlla che il file sala_papiro.jpg.png sia nella stessa cartella di index.html.</div>
+            </div>
+            <div class="find-papyrus-caption" id="find-papyrus-caption">Il papiro si trova nella Galleria della Scrittura, nell'area dei testi religiosi e funerari. Il riquadro evidenzia la vetrina da cercare.</div>
+        </div>
+    </div>
+
+
+    <!-- TORINO MAP POPUP -->
+    <div class="map-overlay" id="map-overlay" onclick="closeMap(event)">
+        <div class="map-modal">
+            <div class="map-head">
+                <div class="map-title">Scopri gli altri in Torino</div>
+                <button class="map-close" onclick="closeMap()" aria-label="Chiudi mappa">✕</button>
+            </div>
+            <img class="map-img" src="nuova mappa.JPG" alt="Nuova mappa per raggiungere il Museo Egizio e il progetto Me-Scripta" loading="lazy" decoding="async">
+        </div>
+    </div>
+    <!-- SHARE POPUP -->
+    <div class="share-overlay" id="share-overlay" onclick="closeSharePopup(event)">
+        <div class="share-modal">
+            <button class="share-close" onclick="closeSharePopup()" aria-label="Chiudi condivisione">✕</button>
+            <h3>✦ Condividi la tua scoperta</h3>
+            <div style="background: #fdfaf5; border-radius: 8px; padding: 12px; margin-bottom: 15px; border-left: 4px solid #c19a6b; text-align: left;">
+                <p style="font-size: 13px; margin: 0; color: #5d4037; line-height: 1.4;">
+                    Stai per condividere la ricostruzione digitale del <strong>Papiro Cat. 1827/5</strong>. 
+                    Il testo include il link al progetto e gli hashtag ufficiali.
+                </p>
+            </div>
+            <p style="font-size: 14px; margin-bottom: 10px;">Copia il testo e incollalo nel tuo post:</p>
+            <div class="share-text-box" id="share-text-box">Scopri il papiro del Libro dei Morti al Museo Egizio di Torino — una finestra sull'antico Egitto, restaurata digitalmente. 🪶 #ME-Scripta #MuseoEgizio #LibroDeiMorti #EgittoAntico</div>
+            <button class="share-copy-btn" id="share-copy-btn" onclick="copyShareText()">📋 Copia testo e hashtag</button>
+            <div class="share-platforms">
+                <button class="share-platform-btn" onclick="openAfterCopy('instagram')">Apri Instagram</button>
+                <button class="share-platform-btn" onclick="openAfterCopy('tiktok')">Apri TikTok</button>
+            </div>
+            <p style="font-size: 11px; color: #888; margin-top: 12px; font-style: italic;">
+                Nota: Instagram e TikTok richiedono l'inserimento manuale del testo copiato.
+            </p>
+        </div>
+    </div>
+
+    </main>
+
+    <script>
+        let lastScreenBeforeGameOver = 'intro';
+
+        function clearScreens() {
+            document.body.classList.remove('show-intro', 'show-level-two', 'show-confirm', 'show-game-over', 'show-main');
+        }
+
+        function openIntro() {
+            clearScreens();
+            document.body.classList.add('show-intro');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showLevelTwo() {
+            clearScreens();
+            document.body.classList.add('show-level-two');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showConfirm() {
+            clearScreens();
+            document.body.classList.add('show-confirm');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function confirmYes() {
+            clearScreens();
+            document.body.classList.add('show-main');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function showGameOver(fromScreen) {
+            lastScreenBeforeGameOver = fromScreen || 'intro';
+            clearScreens();
+            document.body.classList.add('show-game-over');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function backFromGameOver() {
+            if (lastScreenBeforeGameOver === 'level-two') {
+                showLevelTwo();
+            } else if (lastScreenBeforeGameOver === 'confirm') {
+                showConfirm();
+            } else {
+                openIntro();
+            }
+        }
+
+        function backToStart() {
+            clearScreens();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        // --- CREA LA MAGIA ---
+        // before-img = frammento (sempre visibile di default)
+        // after-img  = restaurato (nascosto, rivelato dal pulsante)
+        function createMagic() {
+            const btn = document.getElementById('magic-btn');
+            const btnText = document.getElementById('magic-btn-text');
+            const afterImg = document.getElementById('after-img');
+            const beforeImg = document.getElementById('before-img');
+            const sliderEl = document.getElementById('slider');
+
+            const isRestored = btn.dataset.state === 'restored';
+            btn.disabled = true;
+            btn.classList.add('animating');
+            sliderEl.disabled = true;
+
+            const duration = 3000;
+            const start = performance.now();
+
+            if (!isRestored) {
+                // Frammento → Restaurato: afterImg (restaurato) fa fade da invisibile a visibile sopra tutto
+                btnText.textContent = 'LA MAGIA È IN CORSO...';
+                afterImg.style.clipPath = 'none';
+                afterImg.style.zIndex = '2';
+                afterImg.style.opacity = '0';
+                beforeImg.style.zIndex = '1';
+
+                function fadeIn(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const eased = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    afterImg.style.opacity = eased;
+                    if (progress < 1) {
+                        requestAnimationFrame(fadeIn);
+                    } else {
+                        afterImg.style.opacity = '1';
+                        // Vibrazione aptica (Android)
+                        if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
+                        // Pulse visivo sul contenitore
+                        document.querySelector('.comparison-container').classList.add('magic-complete');
+                        setTimeout(() => document.querySelector('.comparison-container').classList.remove('magic-complete'), 1200);
+                        sliderEl.value = 0;
+                        swipeLine.style.left = '0%';
+                        sliderEl.disabled = false;
+                        btn.classList.remove('animating');
+                        btn.disabled = false;
+                        btn.dataset.state = 'restored';
+                        btnText.textContent = "RITORNA ALL'ORIGINALE";
+                    }
+                }
+                requestAnimationFrame(fadeIn);
+
+            } else {
+                // Restaurato → Frammento: beforeImg (frammento) appare sopra tutto in fade
+                btnText.textContent = 'RITORNO IN CORSO...';
+                beforeImg.style.zIndex = '3';
+                beforeImg.style.opacity = '0';
+                swipeLine.style.left = '100%';
+
+                function fadeInBefore(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const eased = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    beforeImg.style.opacity = eased;
+                    if (progress < 1) {
+                        requestAnimationFrame(fadeInBefore);
+                    } else {
+                        // Ripristina tutto allo stato iniziale
+                        beforeImg.style.opacity = '1';
+                        beforeImg.style.zIndex = '1';
+                        afterImg.style.opacity = '1';
+                        afterImg.style.clipPath = 'inset(0 0 0 100%)';
+                        afterImg.style.zIndex = '2';
+                        sliderEl.value = 100;
+                        sliderEl.disabled = false;
+                        btn.classList.remove('animating');
+                        btn.disabled = false;
+                        btn.dataset.state = 'original';
+                        btnText.textContent = 'CREA LA MAGIA';
+                    }
+                }
+                requestAnimationFrame(fadeInBefore);
+            }
+        }
+
+        const slider = document.getElementById('slider');
+        const afterImg = document.getElementById('after-img');
+        const swipeLine = document.getElementById('swipe-line');
+
+        // --- ZOOM doppio tap/click ---
+        (function() {
+            const container = document.querySelector('.comparison-container');
+            let lastTap = 0;
+            let zoomed = false;
+            let tapTimer = null;
+
+            function toggleZoom(clientX, clientY) {
+                zoomed = !zoomed;
+                const rect = container.getBoundingClientRect();
+                if (zoomed) {
+                    const px = ((clientX - rect.left) / rect.width * 100).toFixed(1) + '%';
+                    const py = ((clientY - rect.top) / rect.height * 100).toFixed(1) + '%';
+                    container.style.setProperty('--zoom-x', px);
+                    container.style.setProperty('--zoom-y', py);
+                }
+                container.classList.toggle('zoomed', zoomed);
+                document.getElementById('slider').style.pointerEvents = zoomed ? 'none' : 'auto';
+            }
+
+            // Touch: doppio tap con touchstart (più reattivo di touchend)
+            container.addEventListener('touchstart', (e) => {
+                const now = Date.now();
+                const gap = now - lastTap;
+                if (gap < 350 && gap > 30) {
+                    e.preventDefault();
+                    if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
+                    const t = e.touches[0];
+                    toggleZoom(t.clientX, t.clientY);
+                } else {
+                    tapTimer = setTimeout(() => { tapTimer = null; }, 350);
+                }
+                lastTap = now;
+            }, { passive: false });
+
+            // Mouse: doppio click desktop
+            container.addEventListener('dblclick', (e) => {
+                toggleZoom(e.clientX, e.clientY);
+            });
+        })();
+
+        // --- SCROLL FADE-IN ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                slider.classList.add('hint-active');
+                setTimeout(() => slider.classList.remove('hint-active'), 2000);
+            }, 800);
+            // Rimuovi label dopo animazione
+            setTimeout(() => {
+                const hint = document.getElementById('swipe-hint');
+                if (hint) hint.remove();
+            }, 7000);
+        });
+
+        // Nasconde hint al primo tocco/drag
+        slider.addEventListener('pointerdown', () => {
+            const hint = document.getElementById('swipe-hint');
+            if (hint) hint.remove();
+        }, { once: true });
+
+        slider.oninput = (e) => {
+            const afterImg = document.getElementById('after-img');
+            afterImg.style.opacity = '1';
+            afterImg.style.clipPath = `inset(0 0 0 ${e.target.value}%)`;
+            swipeLine.style.left = `${e.target.value}%`;
+        };
+
+        const data = {
+            it: {
+                title: "Papiro con due capitoli del Libro dei Morti",
+                audioText: "Ascolta la spiegazione",
+                meta: {
+                    prov: "Provenienza:", provV: "Tebe (?)",
+                    acq: "Acquisizione:", acqV: "Bernardino Drovetti - 1824",
+                    dyn: "Dinastia:", dynV: "19ª (1292-1191 a.C.)",
+                    base: "Datazione su base:", baseV: "Paleografia; paralleli testuali; scrittura retrograda",
+                    size: "Misure:", loc: "Posizione attuale:", locV: "Galleria della Scrittura - sezione 9/4"
+                },
+                descMain: "Il reperto Cat. 1827/5 è composto da una serie di frammenti appartenenti a un unico papiro risalente al Nuovo Regno. Il recto mostra una vignetta policroma che ritrae un uccello con testa e piedi umani; questa è la rappresentazione di una delle parti dello spirito del defunto, quella chiamata Ba, parola spesso tradotta come 'anima'.",
+                descDetails: "Il testo scritto in geroglifici corsivi contiene due capitoli incompleti del Libro dei Morti. Nello specifico, i frammenti contengono le formule 84 e 85, appartenenti al gruppo delle formule di trasformazione. Queste formule permettevano al defunto di assumere diverse forme, in questi capitoli la forma di un airone e quella di un Ba vivente, permettendo al defunto di acquisire i loro comportamenti e caratteristiche simboliche per affrontare il viaggio nell'aldilà. Insolita, dato il contenuto del recto, è la presenza sul retro di una singola linea di geroglifici, anch'essa incompleta e di dubbia interpretazione, probabilmente parte di una formula di offerta.",
+                                faqTitle: "Chiedi all'AI",
+                aiPlaceholder: "Fai una domanda sul papiro...",
+                aiButton: "CHIEDI",
+                aiNote: "L'assistente risponde usando le informazioni della scheda e una ricerca locale per parole chiave.",
+                aiLoading: "Sto interrogando Gemini...",
+                aiKeyMissing: "Gemini non è ancora configurato. Intanto ti rispondo con le informazioni già presenti nella scheda.",
+                aiError: "Ti mostro la risposta più vicina tra le informazioni della scheda.",
+                aiRateLimit: "⏳ Troppe domande ravvicinate. Riprovo tra",
+                suggestedQuestions: [
+                    "Perché il papiro è in frammenti?",
+                    "Che cosa rappresenta il Ba?",
+                    "Perché il retro è insolito?"
+                ],
+                versoTitle: "Il Retro del Papiro",
+                versoText: "Sul retro del papiro è presente una sola riga di geroglifici, incompleta e di interpretazione incerta. Considerati i pochi paralleli esistenti, potrebbe far parte di una formula Htp-di-nswt — la classica formula di offerta funeraria con cui si invocava il re e gli dei per garantire al defunto pane, birra, buoi e oche nell'aldilà. La sua presenza sul retro di un papiro già scritto è insolita e suggerisce un possibile riutilizzo del supporto da parte dello scriba.",
+                glyphTitle: "Schema dei caratteri geroglifici ricostruiti",
+                glyphCaption: "Ricostruzione delle colonne di geroglifici — le aree tratteggiate indicano le lacune integrate",
+                questions: [
+                    "Chi è il Ba?",
+                    "Perché il papiro è in frammenti?", 
+                    "Cosa succede trasformandosi in airone?", 
+                    "Il retro del papiro?", 
+                    "Geroglifici corsivi?",
+                    "Chi era il proprietario?", 
+                    "Cos'è il Libro dei Morti?", 
+                    "Perché la 19ª Dinastia è importante?", 
+                    "Cosa significa 'scrittura retrograda'?"
+                ],
+                answers: [
+                    "Il Ba è una delle entità spirituali più affascinanti dell'antico Egitto. Rappresenta la forza vitale e la personalità del defunto. In questo papiro (Cat. 1827/5), è raffigurato come un uccello con testa e piedi umani, un'iconografia che simboleggia la sua capacità di volare via dalla tomba durante il giorno per visitare il mondo dei vivi e unirsi al sole. Di notte, però, il Ba doveva necessariamente tornare nel sepolcro per ricongiungersi alla mummia e rigenerarsi. La vignetta policroma che vedi sul recto è un esempio straordinario di pittura ramesside, con piume rese con cura e un volto che idealizza le fattezze del defunto.",
+                    "La storia conservativa di questo reperto è complessa. Nel XIX secolo, circa cinquanta frammenti furono incollati su carta sugante, un metodo che oggi consideriamo dannoso perché non rispettava l'ordine originale e introduceva acidità nel supporto. L'umidità e la manipolazione fisica nel corso dei decenni hanno causato lacune e strappi. Il restauro digitale presentato in questa webapp ha permesso di 'slegare' virtualmente i pezzi, pulirli e ricomporli seguendo la logica dei testi e delle immagini, restituendo al pubblico la leggibilità di un'opera che altrimenti apparirebbe come un puzzle incompleto.",
+                    "Le formule 84 e 85 appartengono al gruppo delle 'formule di trasformazione'. La 84 permetteva al defunto di assumere le sembianze dell'airone Benu, l'uccello primordiale associato alla creazione e al dio sole Ra. Diventare un Benu significava poter risorgere ogni mattina dalle tenebre. La formula 85, invece, garantiva la trasformazione in un 'Ba vivente'. Queste metamorfosi non erano semplici travestimenti, ma veri e propri cambiamenti di stato ontologico che conferivano al defunto i poteri e le abilità degli esseri in cui si trasformava, rendendolo capace di superare ogni ostacolo nell'aldilà.",
+                    "Il retro (o 'verso') del papiro riserva una sorpresa: non è vuoto, ma ospita una singola riga di geroglifici. Sebbene incompleta, la sua struttura ricorda la formula 'Htp-di-nswt' (Un'offerta che il re dà). È una preghiera rituale che garantiva al defunto l'approvvigionamento eterno di beni materiali come pane, birra, buoi e pollame. La presenza di questa scritta isolata sul retro suggerisce due ipotesi: o lo scriba ha riutilizzato un papiro già parzialmente scritto per una nota secondaria, o ha voluto aggiungere una garanzia extra di sopravvivenza materiale al corredo magico del Libro dei Morti.",
+                    "La scrittura che vedi non è il geroglifico classico monumentale, ma una sua variante corsiva nota come 'ieratico funerario'. Gli scribi egizi svilupparono questo stile per poter scrivere rapidamente su papiro usando un calamo (una canna tagliata a punta) e inchiostro. Pur mantenendo le forme riconoscibili dei segni geroglifici, il corsivo permetteva una fluidità maggiore. In questo papiro, il testo è organizzato in colonne verticali separate da linee, una struttura tipica dei testi sacri che dovevano mantenere un ordine rigoroso per conservare la loro efficacia magica.",
+                    "Grazie alle iscrizioni sui frammenti, sappiamo che il papiro fu realizzato per due individui: Har-em-ua e Baka. Entrambi sono definiti 'giustificati' o 'vittoriosi' (mAA-xrw), un titolo che si acquisiva solo dopo aver superato la pesatura del cuore davanti a Osiride. Har-em-ua era probabilmente un funzionario di alto livello o un membro del clero tebano. Possedere un rotolo di papiro così decorato, con pigmenti colorati e una scrittura professionale, era uno status symbol che dimostrava il prestigio sociale e la ricchezza della famiglia dei proprietari.",
+                    "Il 'Libro dei Morti' è il nome moderno di una raccolta di testi che gli Egizi chiamavano 'Formule per uscire al giorno'. Non era un libro rilegato, ma un rotolo di papiro lungo anche molti metri. La sua funzione era pratica e magica: serviva come guida e passaporto per l'aldilà. Conteneva le risposte corrette da dare alle divinità guardiane, le formule per non subire danni fisici nella tomba e le istruzioni per navigare sulla barca solare. Senza questo supporto, il defunto rischiava di rimanere intrappolato o di subire la 'seconda morte', ovvero l'annientamento totale dell'identità.",
+                    "La 19ª Dinastia (1292-1191 a.C.) rappresenta l'apogeo del Nuovo Regno, il periodo dei grandi faraoni guerrieri e costruttori come Ramesse II e Seti I. In quest'epoca, la produzione di papiri funerari raggiunse una raffinatezza artistica senza precedenti. Gli artisti tebani, in particolare, eccellevano nell'uso del colore e nella composizione delle vignette. Il papiro Cat. 1827/5 è un testimone diretto di questo splendore: la qualità del tratto e la vivacità dei pigmenti superstiti riflettono la maestria delle botteghe reali di quel tempo.",
+                    "La scrittura retrograda è un fenomeno in cui i segni geroglifici sono orientati al contrario rispetto al senso di lettura. Normalmente, per leggere i geroglifici bisogna andare 'incontro' ai volti degli esseri animati; nella scrittura retrograda, invece, i segni guardano verso la fine della riga. Questa tecnica non era un errore, ma una scelta deliberata con finalità magiche: si credeva che invertire i segni potesse 'bloccare' o neutralizzare eventuali energie pericolose insite nei glifi stessi, proteggendo il defunto e garantendo la segretezza dei rituali più sacri.",
+                    "Il reperto, catalogato come Cat. 1827/5, è una delle perle della collezione del Museo Egizio di Torino. È esposto nella 'Galleria della Scrittura' (sezione 9/4), un'area dedicata all'evoluzione dei sistemi di comunicazione nell'antico Egitto. Misura circa 360 x 273 mm ed è realizzato in papiro di alta qualità. Fu acquistato nel 1824 da Bernardino Drovetti, il console di Francia in Egitto di origine piemontese, la cui collezione costituì il nucleo fondante del museo torinese. Proviene quasi certamente dalla necropoli di Tebe, dove Har-em-ua e Baka furono sepolti oltre tremila anni fa."
+                ]
+            },
+            en: {
+                title: "Papyrus with two chapters from the Book of the Dead",
+                audioText: "Listen to explanation",
+                meta: {
+                    prov: "Provenance:", provV: "Thebes (?)",
+                    acq: "Acquisition:", acqV: "Bernardino Drovetti - 1824",
+                    dyn: "Dynasty:", dynV: "19 (1292-1191 BC)",
+                    base: "Bases for date:", baseV: "Paleography; textual Parallels; Retrograde writing",
+                    size: "Measurements:", loc: "Current location:", locV: "Galleria della Scrittura - section 9/4"
+                },
+                descMain: "Cat. 1827/5 consists of a series of fragments belonging to a single papyrus dating to the New Kingdom. The recto shows a polychrome vignette depicting a bird with human head and feet; this is the representation of one of the parts of the spirit of the deceased, the one called ba, a word often translated as 'soul'.",
+                descDetails: "The text written in cursive hieroglyphs contains two incomplete chapters of the Book of the Dead. Specifically, the fragments contain the spells 84 and 85, belonging to the group of transformation spells. Those spells would allow the deceased to take different formes, in this chapters the shape of a heron and the one of a living Ba, allowing the deceased to acquire their behaviors and symbolic characteristics to face the journey through the afterlife. Unusual, given the content of the recto, is the presence on the back of a single line of hieroglyphs, also incomplete and of dubious interpretation, probably being part of an offering formula.",
+                                faqTitle: "Ask the AI",
+                aiPlaceholder: "Ask a question about the papyrus...",
+                aiButton: "ASK",
+                aiNote: "The assistant answers using this page content and local keyword matching.",
+                aiLoading: "Asking Gemini...",
+                aiKeyMissing: "Gemini is not configured yet. Here is the closest local answer from this page.",
+                aiError: "Here is the closest answer from the page content.",
+                aiRateLimit: "⏳ Too many requests. Retrying in",
+                suggestedQuestions: [
+                    "Why is the papyrus fragmented?",
+                    "What does the Ba represent?",
+                    "Why is the verso unusual?"
+                ],
+                versoTitle: "The Verso of the Papyrus",
+                versoText: "On the verso there is only one line of hieroglyphics, incomplete and of uncertain interpretation. Considering the few existing parallels, it could be part of a Htp-di-nswt formula — the classic funerary offering formula invoking the king and gods to provide the deceased with bread, beer, oxen and geese in the afterlife. Its presence on the back of an already-written papyrus is unusual and suggests a possible reuse of the support by the scribe.",
+                glyphTitle: "Reconstructed hieroglyphic character schema",
+                glyphCaption: "Reconstruction of hieroglyphic columns — hatched areas indicate integrated lacunae",
+                questions: [
+                    "What is the Ba?",
+                    "Why is the papyrus fragmented?", 
+                    "What happens when transformed into a heron?", 
+                    "The back of the papyrus?", 
+                    "Cursive hieroglyphs?",
+                    "Who owned this papyrus?", 
+                    "What is the Book of the Dead?", 
+                    "Why is the 19th Dynasty important?", 
+                    "What is retrograde writing?"
+                ],
+                answers: [
+                    "The Ba is one of the spiritual components of the Egyptian soul, often depicted as a bird with a human head and feet. It is not simply the soul: it is the deceased's personal life force, capable of leaving the tomb, flying among the living, and reuniting with the body at night. In this papyrus the Ba is central: the vignette on the recto portrays it, and spells 84 and 85 allow the deceased to transform into a Benu heron or a living Ba to navigate the afterlife.",
+                    "These fragments (Cat. 1827) were part of a group of fifty or more pieces glued onto blotting paper in the 19th century without any particular order. Over time, humidity and handling accelerated their deterioration. The virtual restoration you see attempts to reassemble this ancient puzzle by reconstructing the original spells and vignettes.",
+                    "Spell 84 allowed the deceased to become a Benu heron, the sacred bird associated with the rising sun. By transforming, the deceased gained the power to 'fly away' from the realm of the dead and witness the light each morning, just as the sun is reborn at every dawn.",
+                    "The back of the papyrus contains a single incomplete line of hieroglyphs of uncertain interpretation, unusual for a funerary text of this kind. Scholars suggest it may be part of an offering formula, or that the sheet was reused by a scribe for a secondary note.",
+                    "Cursive hieroglyphs, also known as 'funerary hieratic', were a simplified form of writing used for sacred texts. Faster to trace than monumental hieroglyphs carved in stone, they allowed scribes to copy long texts like the Book of the Dead onto papyrus more quickly.",
+                    "The fragments bear the names Har-em-ua and Baka, both followed by the title 'justified', indicating they were already deceased at the time of writing. Owning such a finely illustrated papyrus suggests they were high-ranking individuals in 19th Dynasty society, likely officials or priests.",
+                    "It was not a true 'book', but a collection of magical spells written on papyrus and placed in tombs. They served as a kind of instruction manual for overcoming monsters and trials in the court of Osiris, god of the dead, in order to attain eternal life.",
+                    "The 19th Dynasty is the era of Ramesses II, ancient Egypt's most celebrated pharaoh. It was a period of great artistic and religious splendour: the production of funerary papyri reached its peak, with increasingly elaborate illustrations and texts carefully copied by temple scribes.",
+                    "In retrograde writing, hieroglyphic signs face the beginning of the line rather than the end, as is normally the case. This practice, typical of certain magical and funerary texts, likely had a protective function: inverting the signs was believed to neutralise the power of glyphs depicting living creatures.",
+                    "Cat. 1827/5 is on display in the Galleria della Scrittura, section 9/4 of the Museo Egizio in Turin. It is a funerary papyrus from the 19th Dynasty (1292–1191 BC), acquired by Bernardino Drovetti in 1824, likely from Thebes. It measures approximately 360×273 mm and contains two chapters of the Book of the Dead (spells 84 and 85) and a vignette depicting the deceased's Ba."
+                ]
+            }
+        };
+
+        let currentLang = 'it';
+
+        function changeLang(lang) {
+            currentLang = lang;
+            document.getElementById('title').innerText = data[lang].title;
+            document.getElementById('desc-main').innerText = data[lang].descMain;
+            document.getElementById('desc-details').innerText = data[lang].descDetails;
+            document.getElementById('audio-text').innerText = data[lang].audioText;
+            document.getElementById('faq-section-title').innerText = data[lang].faqTitle;
+            document.getElementById('verso-text').innerText = data[lang].versoText;
+            document.getElementById('retro-block-title').innerText = data[lang].versoTitle;
+            document.getElementById('thumb-label-retro').innerText = data[lang].versoTitle;
+            document.getElementById('thumb-label-glyph').innerText = data[lang].glyphTitle;
+            // Aggiorna lightbox se aperto
+            if (currentCaptionKey) {
+                document.getElementById('lightbox-caption').textContent = lightboxCaptions[currentCaptionKey]?.[lang] || '';
+            }
+
+            document.getElementById('meta-prov-lab').innerText = data[lang].meta.prov;
+            document.getElementById('meta-prov-val').innerText = data[lang].meta.provV;
+            document.getElementById('meta-acq-lab').innerText = data[lang].meta.acq;
+            document.getElementById('meta-acq-val').innerText = data[lang].meta.acqV;
+            document.getElementById('meta-dyn-lab').innerText = data[lang].meta.dyn;
+            document.getElementById('meta-dyn-val').innerText = data[lang].meta.dynV;
+            document.getElementById('meta-base-lab').innerText = data[lang].meta.base;
+            document.getElementById('meta-base-val').innerText = data[lang].meta.baseV;
+            document.getElementById('meta-size-lab').innerText = data[lang].meta.size;
+            document.getElementById('meta-loc-lab').innerText = data[lang].meta.loc;
+            document.getElementById('meta-loc-val').innerText = data[lang].meta.locV;
+            
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${lang}`).classList.add('active');
+
+            document.getElementById('ai-question').placeholder = data[lang].aiPlaceholder;
+            document.getElementById('ai-submit').innerText = data[lang].aiButton;
+            document.getElementById('ai-note').innerText = data[lang].aiNote;
+            renderAiSuggestions();
+            document.getElementById('ai-response').style.display = 'none';        }
+
+        function normalizeAiText(text) {
+            return (text || '')
+                .toLowerCase()
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9\s-]/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function getLocalAnswer(q) {
+            const qNorm = normalizeAiText(q);
+            const tokens = qNorm.split(' ').filter(word => word.length > 2);
+            const langKeywords = keywordMap[currentLang];
+            let bestMatch = 6;
+            let bestScore = 0;
+
+            langKeywords.forEach((keywords, index) => {
+                let score = 0;
+                keywords.forEach((kw) => {
+                    const kwNorm = normalizeAiText(kw);
+                    if (!kwNorm) return;
+                    if (qNorm.includes(kwNorm)) score += Math.min(70, 12 + kwNorm.length * 2);
+
+                    const kwTokens = kwNorm.split(' ').filter(word => word.length > 2);
+                    kwTokens.forEach((kwToken) => {
+                        tokens.forEach((token) => {
+                            if (token === kwToken) score += 8;
+                            else if (token.length > 4 && kwToken.length > 4 && (token.includes(kwToken) || kwToken.includes(token))) score += 4;
+                        });
+                    });
+                });
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = index;
+                }
+            });
+
+            return data[currentLang].answers[bestMatch];
+        }
+
+        function showAiThinking() {
+            const responseDiv = document.getElementById('ai-response');
+            const scroll = document.getElementById('ai-scroll');
+            const responseText = document.getElementById('ai-response-text');
+            responseDiv.style.display = 'block';
+            scroll.classList.remove('open');
+            responseText.innerHTML = `
+                <div class="ai-loading-wrap">
+                    <div class="ai-loading-label"><span class="thinking-dots">${data[currentLang].aiLoading.replace(/\.\.\.$/, '')}</span></div>
+                    <div class="glyph-stream">𓂀 𓅓 𓇋 𓏏 𓊹 𓆣 𓂋 𓎛 𓇳 𓅱 𓂀 𓅓 𓇋 𓏏 𓊹 𓆣</div>
+                </div>`;
+            responseDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function showAiAnswer(answer) {
+            const scroll = document.getElementById('ai-scroll');
+            const responseText = document.getElementById('ai-response-text');
+            scroll.classList.remove('open');
+            responseText.textContent = answer;
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => scroll.classList.add('open'));
+            });
+        }
+        async function askGemini(overrideQuestion) {
+            const questionInput = document.getElementById('ai-question');
+            const question = (overrideQuestion || questionInput.value).trim();
+            if (!question) return;
+
+            const submitBtn = document.getElementById('ai-submit');
+            submitBtn.disabled = true;
+            showAiThinking();
+
+            const delay = 1500 + Math.floor(Math.random() * 500);
+            setTimeout(() => {
+                showAiAnswer(getLocalAnswer(question));
+                submitBtn.disabled = false;
+            }, delay);
+        }
+        function renderAiSuggestions() {
+            const container = document.getElementById('ai-suggestions');
+            container.innerHTML = '';
+            data[currentLang].suggestedQuestions.forEach((q) => {
+                const btn = document.createElement('button');
+                btn.className = 'ai-suggestion-btn';
+                btn.innerText = q;
+                btn.onclick = () => {
+                    document.getElementById('ai-question').value = q;
+                    askGemini(q);
+                };
+                container.appendChild(btn);
+            });
+            
+            // Aggiungi listener per Invio
+            const input = document.getElementById('ai-question');
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    askGemini();
+                }
+            };
+        }
+
+        // Mappa parole chiave → indice risposta (0-9)
+        const keywordMap = {
+            it: [
+                // 0: Ba — anima, spirito, uccello, forza vitale
+                ['ba','anima','spirito','uccello','testa umana','piedi umani','forza vitale','vignetta','figura','vola','volare','eternità','immortalità','ka','akh','disegno','dipinto','policromo','aldilà','sopravvivenza','anima egizia','chi è l\'uccello','perché ha la testa di uomo','ali','piume','simbolo spirituale','viaggio notturno','unione col corpo','manifestazione','entità','psiche egizia','soffio vitale','rappresentazione del ba','vignetta colorata','pittura sul papiro'],
+                // 1: Frammenti — stato fisico, restauro, come è ridotto
+                ['framment','rotto','pezzi','carta sugante','degrado','deteriorato','restauro','puzzle','umidità','incollato','conservazione','stato fisico','cinquanta','1800','ottocento','danneggiato','lacuna','mancante','incompleto','ricomposto','perché è rotto','come mai','storia del papiro','rovinato','distrutto','tagliato','lacerato','strappo','buco','condizioni','restauro digitale','virtuale','ricostruzione','mille pezzi','deterioramento','manutenzione','manipolazione','secoli','tempo','usura','invecchiamento'],
+                // 2: Formula 84/85 — airone, trasformazione, poteri
+                ['formula 84','formula 85','spell 84','spell 85','84','85','airone','benu','trasformazione','diventare','tramutarsi','sole','alba','luce','risorgere','rinascita','resurrezione','potere','magia','rito','incantesimo','preghiera','invocazione','testo magico','cosa fa la formula','a cosa serve','capacità','metamorfosi','forma animale','poteri magici','formule di trasformazione','assumere la forma','diventare airone','diventare ba','viaggio solare','ciclo del sole'],
+                // 3: Retro — altra faccia, offerta, riutilizzo
+                ['retro','verso','dietro','rovescio','altra faccia','lato opposto','parte posteriore','htp','offerta funeraria','offerta','riga sul retro','scritta sul retro','riutilizzo','riutilizzato','scriba','appunto','cosa c\'è dietro','perché c\'è una scritta dietro','seconda mano','nota','formula htp','doni per il morto','pane e birra','offerte divine','riuso del papiro','scrittura sul verso','lato b','dietro al papiro','riga singola'],
+                // 4: Geroglifici corsivi — come è scritto, scrittura, segni
+                ['corsivo','ieratico','geroglifico','scrittura','alfabeto','carattere','segno','tracciare','scriba','copiare','semplificata','sacerdotale','funeraria','leggere','interpretare','che lingua','come è scritto','inchiostro','calamo','stile','segni grafici','paleografia','scrittura veloce','testo scritto','calligrafia','segni del papiro','scrittura egizia','come leggevano','modo di scrivere','tecnica di scrittura'],
+                // 5: Proprietario — chi era, nomi, a chi apparteneva
+                ['proprietario','chi era','di chi era','apparteneva','har','har em','baka','nome','nomi','giustificato','funzionario','sacerdote','rango','nobile','committente','per chi','destinatario','chi lo ha commissionato','defunto','morto','titolare','har-em-ua','chi possedeva il papiro','proprietari','per chi è stato fatto','elite','classe sociale','status','chi è il defunto','a chi apparteneva','di chi è','possessore'],
+                // 6: Libro dei Morti — cos'è, funzione, contiene, importanza religiosa
+                ['libro','morti','raccolta','formule magiche','manuale','osiride','aldilà','istruzioni','testo sacro','testo funerario','capitoli','religioso','papiro funerario','cos\'è','cosa contiene','funzione','scopo','rito funebre','perché esiste','spiegami','dimmi tutto','raccontami','descrivimi','informazioni','info','panoramica','overview','guida per l\'aldilà','formule per uscire al giorno','testi funerari','scopo del papiro','perché lo mettevano nella tomba'],
+                // 7: 19a Dinastia — quando, data, periodo, Ramesse, storia
+                ['dinastia','19','xix','diciannovesima','ramesse','ramses','faraone','apice','splendore','storico','periodo','epoca','era','quando','data','anno','anni','1292','1191','nuovo regno','storia','egitto antico','risale','età','antico','secoli','millenni','datazione','provenienza','tebe','drovetti','1824','bernardino','da dove viene','origine','periodo ramesside','storia egizia','cronologia','quando è stato scritto','in che epoca','di che periodo','a quando risale'],
+                // 8: Scrittura retrograda — invertita, specchio, protezione
+                ['retrograda','retrogrado','invertita','invertito','inverso','al contrario','contrario','specchio','direzione','orientamento','da destra','da sinistra','protezione','proteggere','neutralizzare','segni pericolosi','magia','scrittura magica','perché al contrario','senso di lettura','tecnica','orientamento dei segni','lettura invertita','funzione protettiva','magia dei segni','segni che guardano indietro','perché i segni','perché guardano'],
+                // 9: Generico — dove si trova, dimensioni, museo
+                ['dove si trova','dove è','museo','galleria','sala','posizione','collocazione','dove vederlo','dimensioni','misure','misura','quanto è grande','grandezza','materiale','papiro','cyperus','pianta','fibra','supporto','cat 1827','1827','catalogo','reperto','scheda','descrizione','questo oggetto','numero di inventario','esposizione','museo egizio torino','galleria della scrittura','misure del papiro','materiali usati']
+            ],
+            en: [
+                // 0: Ba
+                ['ba','the ba','what is the ba','who is the ba','what is ba','soul','spirit',
+                 'bird','human head','human feet','life force','wings','fly','tomb','visit',
+                 'ra','eternal','immortality','representation','vignette','recto','figure',
+                 'symbol','living ba','ka','akh','identity','deceased','part of the soul',
+                 'what does it show','what do i see','what is depicted','image','painting',
+                 'colorful','polychrome','spiritual being','afterlife journey'],
+                // 1: Fragments
+                ['fragment','fragments','broken','piece','pieces','blotting paper','degrad',
+                 'deteriorat','restored','restoration','puzzle','humidity','glued',
+                 'conservation','physical state','fifty','nineteenth century','1800',
+                 'manipulation','why broken','damaged','lacuna','missing','incomplete',
+                 'reassembled','reconstruction','what happened','history of the papyrus',
+                 'how did it arrive','how was it preserved','condition'],
+                // 2: Spell 84/85
+                ['spell 84','spell 85','formula 84','formula 85','84','85','heron','benu',
+                 'transform','transformation','become','shape','take the form','fly','sun',
+                 'dawn','light','morning','reborn','resurrection','rebirth','power',
+                 'magic','magical','ritual','incantation','prayer','invocation'],
+                // 3: Verso
+                ['verso','back','reverse','behind','other side','back of the papyrus',
+                 'htp','offering formula','funerary offering','offering','line on the back',
+                 'text on the back','reuse','reused','scribe note','posterior'],
+                // 4: Cursive hieroglyphs
+                ['cursive','hieratic','hieroglyph','hieroglyphs','writing','cursive writing',
+                 'script','character','characters','sign','signs','trace','scribe','scribes',
+                 'copy','simplified','sacred','funerary writing','how to read','how written',
+                 'read','reading','interpret','language','alphabet','letters','words'],
+                // 5: Owner
+                ['owner','who owned','who was it for','belonged to','har','baka','name',
+                 'names','justified','official','priest','rank','high rank','social class',
+                 'noble','commissioner','dedicated to','recipient','who commissioned',
+                 'the deceased','who died','whose is it'],
+                // 6: Book of the Dead
+                ['book','book of the dead','dead','collection','magical spells','magic',
+                 'manual','osiris','afterlife','instructions','sacred text','funerary text',
+                 'chapters','chapter','religious','funerary','what is it','what is this',
+                 'contains','what does it contain','meaning','purpose','function','why',
+                 'tradition','funerary rite','ceremony','tell me','explain','describe',
+                 'information','overview','summary','general','everything','what are we looking at'],
+                // 7: 19th Dynasty
+                ['dynasty','19th','xix','nineteen','ramesses','ramses','pharaoh','peak',
+                 'splendour','historic','important','importance','period','era','when',
+                 'date','year','1292','1191','new kingdom','history','ancient egypt',
+                 'how old','age','old','centuries','millennia','dating','provenance',
+                 'thebes','drovetti','acquisition','1824','where was it found','origin'],
+                // 8: Retrograde writing
+                ['retrograde','inverted','backwards','mirror','direction','orientation',
+                 'right to left','protection','neutralize','dangerous signs',
+                 'magical','magic','technique','why reversed','how it works',
+                 'inverted writing','reversed text'],
+                // 9: Generic/location
+                ['location','where is it','museum','gallery','room','position',
+                 'dimensions','size','how big','material','papyrus','plant','fiber',
+                 'cat 1827','1827','catalog','number','artefact','object','this papyrus',
+                 'this object','what kind of object','description']
+            ]
+        };
+        const lightboxCaptions = {
+            'retro-caption': {
+                it: "Il Retro del Papiro: mostra una singola riga di geroglifici, probabilmente una formula di offerta funeraria (Htp-di-nswt).",
+                en: "The Verso of the Papyrus: shows a single line of hieroglyphs, likely a funerary offering formula (Htp-di-nswt)."
+            },
+            'glyph-caption': {
+                it: "Schema dei caratteri geroglifici ricostruiti: ricostruzione delle colonne originali basata sui frammenti superstiti.",
+                en: "Reconstructed hieroglyphic character schema: reconstruction of the original columns based on the surviving fragments."
+            }
+        };
+
+        let currentCaptionKey = '';
+
+        function openLightbox(src, captionKey) {
+            currentCaptionKey = captionKey;
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-caption').textContent = lightboxCaptions[captionKey][currentLang];
+            document.getElementById('lightbox-overlay').classList.add('active');
+        }
+
+        function closeLightbox(e) {
+            if (!e || e.target === document.getElementById('lightbox-overlay') || e.currentTarget.classList.contains('lightbox-close')) {
+                document.getElementById('lightbox-overlay').classList.remove('active');
+            }
+        }
+
+        function openFindPapyrus(e) {
+            if (e) e.preventDefault();
+            document.getElementById('find-papyrus-overlay').classList.add('active');
+        }
+
+        function closeFindPapyrus(e) {
+            if (!e || e.target === document.getElementById('find-papyrus-overlay') || e.currentTarget.classList.contains('find-papyrus-close')) {
+                document.getElementById('find-papyrus-overlay').classList.remove('active');
+            }
+        }
+
+
+        function openMap(e) {
+            if (e) e.preventDefault();
+            document.getElementById('map-overlay').classList.add('active');
+        }
+
+        function closeMap(e) {
+            if (!e || e.target === document.getElementById('map-overlay') || e.currentTarget.classList.contains('map-close')) {
+                document.getElementById('map-overlay').classList.remove('active');
+            }
+        }
+        function showMissingPapyrusImage() {
+            document.getElementById('find-papyrus-img').style.display = 'none';
+            document.querySelector('.find-papyrus-callout').style.display = 'none';
+            document.getElementById('find-papyrus-missing').style.display = 'block';
+        }
+        const shareTextIT = 'Scopri il papiro del Libro dei Morti al Museo Egizio di Torino — una finestra sull\'antico Egitto, restaurata digitalmente. 🪶 #ME-Scripta #MuseoEgizio #LibroDeiMorti #EgittoAntico';
+        const shareTextEN = 'Discover the Book of the Dead papyrus at the Museo Egizio in Turin — a window into ancient Egypt, digitally restored. 🪶 #ME-Scripta #MuseoEgizio #BookOfTheDead #AncientEgypt';
+
+        function shareToInstagram(e) {
+            if (e) e.preventDefault();
+            triggerShare('instagram');
+        }
+
+        function shareToTiktok(e) {
+            if (e) e.preventDefault();
+            triggerShare('tiktok');
+        }
+
+        function triggerShare(platform) {
+            // Logica URL: Se siamo su web (http/https), usiamo l'URL attuale. 
+            // Se siamo locali (file://), mettiamo un link generico al museo egizio funzionante.
+            let currentUrl = window.location.href;
+            if (window.location.protocol.startsWith('file')) {
+                currentUrl = 'https://museoegizio.it/'; // Link base funzionante
+            }
+            
+            const text = (currentLang === 'it' ? shareTextIT : shareTextEN);
+            const fullMessage = text + "\n\nLink: " + currentUrl;
+            
+            // Se la piattaforma è vuota (tasto generico) e il browser supporta la condivisione nativa
+            if (!platform && navigator.share) {
+                navigator.share({
+                    title: 'ME-Scripta: Papiro Cat. 1827/5',
+                    text: text,
+                    url: currentUrl
+                }).then(() => {
+                    console.log("Condivisione riuscita");
+                }).catch(err => {
+                    console.log("Condivisione annullata o non supportata, uso il popup");
+                    document.getElementById('share-text-box').textContent = fullMessage;
+                    showSharePopup('');
+                });
+                return;
+            }
+
+            // Per Instagram, TikTok o se la condivisione nativa fallisce/non è supportata
+            document.getElementById('share-text-box').textContent = fullMessage;
+            showSharePopup(platform);
+        }
+
+        function showSharePopup(platform) {
+            document.getElementById('share-overlay').classList.add('active');
+            document.getElementById('share-overlay').dataset.platform = platform || '';
+            // Reset bottone copia
+            const btn = document.getElementById('share-copy-btn');
+            btn.textContent = '📋 Copia testo e hashtag';
+            btn.classList.remove('copied');
+        }
+
+        function closeSharePopup(e) {
+            if (!e || e.target === document.getElementById('share-overlay') || e.currentTarget === document.querySelector('.share-close')) {
+                document.getElementById('share-overlay').classList.remove('active');
+            }
+        }
+
+        function copyShareText() {
+            const text = document.getElementById('share-text-box').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('share-copy-btn');
+                btn.textContent = '✓ Copiato!';
+                btn.classList.add('copied');
+            });
+        }
+
+        function openAfterCopy(platform) {
+            copyShareText();
+            // Aspetta un momento per far vedere il feedback "Copiato!"
+            setTimeout(() => {
+                if (platform === 'instagram') window.open('https://www.instagram.com/', '_blank');
+                if (platform === 'tiktok') window.open('https://www.tiktok.com/', '_blank');
+                if (platform === 'facebook') window.open('https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(window.location.href), '_blank');
+            }, 800);
+        }
+
+        function sharePage(e) {
+            if (e) e.preventDefault();
+            const appUrl = window.location.href;
+
+            if (navigator.share && window.location.protocol === 'https:') {
+                navigator.share({
+                    title: 'ME-Scripta: Papiro Cat. 1827/5',
+                    url: appUrl
+                }).catch(() => copyAppLink(appUrl));
+                return;
+            }
+
+            copyAppLink(appUrl);
+        }
+
+        function copyAppLink(appUrl) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(appUrl).then(() => {
+                    alert("Link dell'app del papiro copiato.");
+                }).catch(() => copyAppLinkFallback(appUrl));
+                return;
+            }
+
+            copyAppLinkFallback(appUrl);
+        }
+
+        function copyAppLinkFallback(appUrl) {
+            const tempInput = document.createElement('textarea');
+            tempInput.value = appUrl;
+            tempInput.setAttribute('readonly', '');
+            tempInput.style.position = 'fixed';
+            tempInput.style.left = '-9999px';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                document.execCommand('copy');
+                alert("Link dell'app del papiro copiato.");
+            } catch (err) {
+                prompt("Copia il link dell'app del papiro:", appUrl);
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function speakText() {
+            window.speechSynthesis.cancel();
+            const btn = document.getElementById('audio-btn');
+            if (btn.classList.contains('speaking')) {
+                btn.classList.remove('speaking');
+                return;
+            }
+            const textToRead = data[currentLang].descMain + " " + data[currentLang].descDetails;
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            utterance.lang = currentLang === 'it' ? 'it-IT' : 'en-US';
+            utterance.onend = () => btn.classList.remove('speaking');
+            btn.classList.add('speaking');
+            window.speechSynthesis.speak(utterance);
+        }
+
+        changeLang('it');
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

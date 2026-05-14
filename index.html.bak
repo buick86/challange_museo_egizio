@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat. 1827/5 - Museo Egizio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root { --gold: #c5a059; --bright-gold: #FFD700; --dark: #121212; --card: #1e1e1e; }
+
+        * { box-sizing: border-box; }
+
+        body { font-family: 'EB Garamond', serif; background: var(--dark); color: #e0e0e0; margin: 0; padding: 12px 15px; display: flex; flex-direction: column; align-items: center; }
+
+        /* TOP BAR */
+        .top-bar { width: 100%; max-width: 600px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+        .lang-switch { display: flex; gap: 8px; }
+        button.lang-btn { background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 5px 8px; cursor: pointer; border-radius: 4px; transition: 0.3s; font-family: sans-serif; display: flex; align-items: center; justify-content: center; }
+        button.lang-btn.active { background: var(--gold); color: black; }
+        .social-actions { display: flex; gap: 8px; align-items: center; }
+        .share-btn, .insta-btn { background: var(--gold); border: none; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; text-decoration: none; transition: transform 0.2s, box-shadow 0.2s; }
+        .share-btn:hover, .insta-btn:hover { transform: scale(1.1); box-shadow: 0 0 10px rgba(197,160,89,0.5); }
+
+        /* COMPARISON */
+        .comparison-container { position: relative; width: 100%; max-width: 600px; height: min(90vw, 580px); overflow: hidden; border: 2px solid var(--gold); border-radius: 8px; background: #000; }
+        .papiro-img { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; }
+        #after-img { clip-path: inset(0 0 0 100%); }
+
+        .swipe-line { position: absolute; top: 0; bottom: 0; left: 100%; width: 2px; background: var(--bright-gold); z-index: 9; pointer-events: none; box-shadow: 0 0 8px rgba(255,215,0,0.5); }
+
+        #slider { position: absolute; top: 0; left: 0; width: 100%; height: 100%; appearance: none; background: transparent; cursor: pointer; z-index: 10; margin: 0; }
+        #slider::-webkit-slider-thumb { appearance: none; width: 34px; height: 34px; background: var(--bright-gold); border: 3px solid white; border-radius: 50%; cursor: ew-resize; box-shadow: 0 0 15px rgba(0,0,0,0.8); }
+        #slider::-moz-range-thumb { width: 34px; height: 34px; background: var(--bright-gold); border: 3px solid white; border-radius: 50%; cursor: ew-resize; }
+
+        /* HINT swipe */
+        @keyframes hintPulse {
+            0%   { transform: translateX(0) scale(1);   opacity: 1; }
+            20%  { transform: translateX(-18px) scale(1.15); opacity: 1; }
+            40%  { transform: translateX(10px) scale(1.05); opacity: 1; }
+            60%  { transform: translateX(-8px) scale(1.1);  opacity: 1; }
+            80%  { transform: translateX(4px) scale(1.02);  opacity: 1; }
+            100% { transform: translateX(0) scale(1);   opacity: 1; }
+        }
+        @keyframes hintLabelFade {
+            0%   { opacity: 0; transform: translateY(4px); }
+            15%  { opacity: 1; transform: translateY(0); }
+            75%  { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        .swipe-hint-label {
+            position: absolute;
+            bottom: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.65);
+            color: var(--bright-gold);
+            font-family: 'Cinzel', serif;
+            font-size: 0.7em;
+            letter-spacing: 2px;
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,215,0,0.3);
+            pointer-events: none;
+            z-index: 11;
+            white-space: nowrap;
+            animation: hintLabelFade 7s ease forwards;
+        }
+        #slider.hint-active::-webkit-slider-thumb { animation: hintPulse 1.2s ease 0.3s 1; }
+        #slider.hint-active::-moz-range-thumb     { animation: hintPulse 1.2s ease 0.3s 1; }
+
+        /* CONFIDENCE */
+        .confidence-container { width: 100%; max-width: 600px; margin-top: 16px; text-align: left; }
+        .confidence-label { font-family: sans-serif; font-size: 0.72em; color: #aaa; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+        .confidence-bar-bg { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
+        .confidence-bar-fill { width: 85%; height: 100%; background: linear-gradient(to right, #ff4e50, #f9d423, #00ff00); border-radius: 3px; }
+
+        /* META */
+        .meta-section { width: 100%; max-width: 600px; margin-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-family: sans-serif; font-size: 0.78em; color: #888; line-height: 1.4; border-top: 1px solid #333; padding-top: 14px; }
+        .meta-item b { color: var(--gold); text-transform: uppercase; font-size: 0.9em; }
+        .current-loc { grid-column: span 2; margin-top: 4px; color: #aaa; font-style: italic; }
+
+        /* CONTENT */
+        .content { max-width: 600px; width: 100%; margin-top: 20px; }
+        .catalog-num { color: var(--gold); font-size: 0.75em; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 6px; font-family: 'Cinzel', serif; }
+        h2 { font-family: 'Cinzel', serif; font-weight: 600; margin-top: 0; color: #fff; font-size: clamp(1.2em, 3.8vw, 1.55em); border-bottom: 1px solid #333; padding-bottom: 10px; line-height: 1.3; }
+        p { line-height: 1.85; text-align: justify; font-size: clamp(1.05em, 3vw, 1.18em); color: #ccc; }
+
+        /* AUDIO */
+        .audio-btn { background: #2a2a2a; color: white; border: 1px solid #444; width: 100%; padding: 12px; margin: 14px 0; border-radius: 50px; display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer; font-family: sans-serif; transition: border-color 0.2s; }
+        .audio-btn:hover { border-color: var(--gold); }
+        .audio-btn.speaking { border-color: var(--bright-gold); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+        .audio-btn.speaking .audio-icon { animation: audioPulse 0.8s ease-in-out infinite; }
+        @keyframes audioPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.3); } }
+
+        /* FAQ */
+        .faq-section { width: 100%; max-width: 600px; margin-top: 28px; }
+        .faq-title { font-family: 'Cinzel', serif; border-bottom: 1px solid var(--gold); padding-bottom: 8px; margin-bottom: 14px; font-size: 1.1em; color: var(--gold); text-transform: uppercase; letter-spacing: 1px; }
+        #faq-container { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .faq-btn { display: block; width: 100%; text-align: left; background: var(--card); color: #ddd; padding: 13px; margin-bottom: 0; border: 1px solid transparent; border-radius: 8px; font-size: 0.95em; cursor: pointer; transition: border-color 0.2s, color 0.2s; font-family: 'EB Garamond', serif; font-style: italic; line-height: 1.4; }
+        .faq-btn:hover { border-color: var(--gold); color: #fff; }
+        #ai-response { background: #1c1a14; padding: 16px 18px; border-radius: 8px; display: none; border-left: 4px solid var(--gold); margin-bottom: 16px; line-height: 1.7; color: #eee; font-size: 1.05em; }
+
+        /* EXTERNAL LINKS */
+        .external-links { width: 100%; max-width: 600px; display: flex; gap: 8px; margin: 24px 0 16px 0; }
+        .link-btn { flex: 1; padding: 10px 5px; text-align: center; border-radius: 8px; text-decoration: none; font-family: sans-serif; font-weight: bold; font-size: clamp(0.55em, 1.5vw, 0.65em); transition: 0.3s; letter-spacing: 0.5px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .link-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .btn-museo { border: 1px solid var(--gold); color: var(--gold); }
+        .btn-yt { border: 1px solid #FF0000; color: #FF0000; }
+        .btn-vt { border: 1px solid #00d4ff; color: #00d4ff; }
+        .btn-museo:hover { background: var(--gold); color: black; }
+        .btn-yt:hover { background: #FF0000; color: white; }
+        .btn-vt:hover { background: #00d4ff; color: black; }
+        .btn-museo svg { fill: var(--gold); }
+        .btn-museo:hover svg { fill: black; }
+        .btn-vt svg { stroke: #00d4ff; }
+        .btn-vt:hover svg { stroke: black; }
+
+        /* SHARE POPUP */
+        .share-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75); z-index: 1000;
+            align-items: center; justify-content: center; padding: 20px;
+        }
+        .share-overlay.active { display: flex; }
+        .share-modal {
+            background: #1a1500; border: 1.5px solid var(--gold);
+            border-radius: 12px; padding: 24px; width: 100%; max-width: 360px;
+            position: relative;
+        }
+        .share-modal h3 {
+            font-family: 'Cinzel', serif; color: var(--gold);
+            font-size: 1em; letter-spacing: 2px; margin: 0 0 6px 0;
+            text-transform: uppercase;
+        }
+        .share-modal p { font-size: 0.85em; color: #aaa; margin: 0 0 16px 0; line-height: 1.5; }
+        .share-text-box {
+            background: #111; border: 1px solid #444; border-radius: 8px;
+            padding: 12px; font-family: 'EB Garamond', serif; font-size: 0.95em;
+            color: #eee; line-height: 1.6; margin-bottom: 12px; user-select: all;
+        }
+        .share-copy-btn {
+            width: 100%; padding: 11px; background: var(--gold); color: #000;
+            border: none; border-radius: 8px; font-family: 'Cinzel', serif;
+            font-size: 0.85em; letter-spacing: 1px; cursor: pointer;
+            transition: background 0.2s; margin-bottom: 8px;
+        }
+        .share-copy-btn:hover { background: var(--bright-gold); }
+        .share-copy-btn.copied { background: #4caf50; color: white; }
+        .share-close {
+            position: absolute; top: 12px; right: 14px;
+            background: none; border: none; color: #888;
+            font-size: 1.4em; cursor: pointer; line-height: 1;
+        }
+        .share-close:hover { color: var(--gold); }
+        .share-platforms { display: flex; gap: 8px; margin-top: 4px; }
+        .share-platform-btn {
+            flex: 1; padding: 9px 5px; border-radius: 8px; border: 1px solid #444;
+            background: #111; color: #ccc; font-family: sans-serif; font-size: 0.75em;
+            cursor: pointer; transition: border-color 0.2s, color 0.2s; text-align: center;
+        }
+        .share-platform-btn:hover { border-color: var(--gold); color: #fff; }
+
+        /* HASHTAG FOOTER */
+        .hashtag-footer { width: 100%; max-width: 600px; text-align: center; padding: 10px 0 40px 0; }
+        .hashtag-footer a { font-family: 'Cinzel', serif; font-size: 0.8em; letter-spacing: 3px; color: var(--gold); text-decoration: none; opacity: 0.7; transition: opacity 0.2s; }
+        .hashtag-footer a:hover { opacity: 1; }
+
+        /* MAGIC BUTTON */
+        .magic-btn-container { width: 100%; max-width: 600px; margin-top: 12px; }
+        .magic-btn {
+            width: 100%; padding: 13px;
+            background: linear-gradient(135deg, #1a1200, #2e1f00);
+            border: 1.5px solid var(--gold);
+            color: var(--gold);
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.8em, 2.5vw, 1em);
+            letter-spacing: 2px;
+            border-radius: 8px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: background 0.3s, box-shadow 0.3s;
+            position: relative; overflow: hidden;
+        }
+        .magic-btn:hover:not(:disabled) { background: linear-gradient(135deg, #2e1f00, #4a3200); box-shadow: 0 0 18px rgba(197,160,89,0.35); }
+        .magic-btn:disabled { opacity: 0.6; cursor: default; }
+        .magic-btn .sparkle { font-size: 1.2em; transition: transform 0.3s; }
+        .magic-btn:hover:not(:disabled) .sparkle { transform: rotate(20deg) scale(1.2); }
+        @keyframes shimmer { 0% { left: -100%; } 100% { left: 200%; } }
+        .magic-btn.animating::after {
+            content: ''; position: absolute; top: 0; left: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent);
+            animation: shimmer 1.2s infinite;
+        }
+
+        /* ZOOM sul papiro */
+        .comparison-container.zoomed { cursor: zoom-out; }
+        .comparison-container.zoomed .papiro-img { transform-origin: var(--zoom-x, 50%) var(--zoom-y, 50%); transform: scale(2.5); transition: transform 0.3s ease; }
+        .comparison-container .papiro-img { transition: transform 0.3s ease; }
+        .zoom-hint { position: absolute; bottom: 34px; right: 10px; background: rgba(0,0,0,0.6); color: var(--bright-gold); font-family: 'Cinzel', serif; font-size: 0.6em; letter-spacing: 1px; padding: 4px 8px; border-radius: 10px; pointer-events: none; z-index: 11; opacity: 0.8; }
+
+        /* THUMBNAIL STRIP sotto il papiro */
+        .thumb-strip { width: 100%; max-width: 600px; display: flex; gap: 10px; margin-top: 10px; }
+        .thumb-item { flex: 1; cursor: pointer; border-radius: 6px; overflow: hidden; border: 1px solid #333; transition: border-color 0.2s, transform 0.2s; position: relative; background: #111; }
+        .thumb-item:hover { border-color: var(--gold); transform: translateY(-2px); }
+        .thumb-item img { width: 100%; height: 80px; object-fit: cover; display: block; opacity: 0.85; transition: opacity 0.2s; }
+        .thumb-item:hover img { opacity: 1; }
+        .thumb-label { font-family: 'Cinzel', serif; font-size: 0.55em; letter-spacing: 1px; color: var(--gold); text-align: center; padding: 5px 4px; text-transform: uppercase; line-height: 1.3; background: #1a1500; }
+
+        /* LIGHTBOX */
+        .lightbox-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 2000; align-items: center; justify-content: center; padding: 16px; flex-direction: column; gap: 12px; }
+        .lightbox-overlay.active { display: flex; }
+        .lightbox-img { max-width: 100%; max-height: 80vh; object-fit: contain; border: 1px solid var(--gold); border-radius: 6px; }
+        .lightbox-caption { font-family: 'Cinzel', serif; font-size: 0.7em; letter-spacing: 2px; color: var(--gold); text-align: center; opacity: 0.8; }
+        .lightbox-close { position: absolute; top: 16px; right: 20px; background: none; border: none; color: #aaa; font-size: 2em; cursor: pointer; line-height: 1; }
+        .lightbox-close:hover { color: var(--bright-gold); }
+
+        /* RETRO TEXT - dentro .content */
+        .retro-block { margin-top: 22px; padding-top: 18px; border-top: 1px solid #2a2a2a; }
+        .retro-block-title { font-family: 'Cinzel', serif; font-size: 0.8em; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; opacity: 0.9; }
+        .retro-block p { font-size: 0.95em; color: #aaa; margin: 0; }
+
+        /* SCROLL FADE-IN */
+        .fade-in-section { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+        .fade-in-section.visible { opacity: 1; transform: translateY(0); }
+
+        /* MAGIC COMPLETE PULSE */
+        @keyframes magicComplete { 0%,100% { box-shadow: 0 0 0 rgba(255,215,0,0); } 50% { box-shadow: 0 0 30px rgba(255,215,0,0.4); } }
+        .magic-complete { animation: magicComplete 0.6s ease 2; }
+        @media (max-width: 420px) {
+            body { padding: 10px; }
+            .top-bar { margin-bottom: 10px; }
+            button.lang-btn { padding: 4px 6px; }
+            .share-btn, .insta-btn { width: 30px; height: 30px; }
+            #faq-container { grid-template-columns: 1fr; }
+            .faq-btn { font-size: 0.9em; }
+            .external-links { gap: 5px; }
+            .link-btn { font-size: 0.58em; padding: 9px 3px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="lang-switch">
+            <button id="btn-it" class="lang-btn active" onclick="changeLang('it')">
+                <svg width="25px" height="25px" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                    <path style="fill:#73AF00;" d="M38.345,88.273C17.167,88.273,0,105.44,0,126.618v258.759c0,21.177,17.167,38.345,38.345,38.345 h132.322V88.273H38.345z"/>
+                    <rect x="170.67" y="88.277" style="fill:#F5F5F5;" width="170.67" height="335.45"/>
+                    <path style="fill:#FF4B55;" d="M473.655,88.273H341.333v335.448h132.322c21.177,0,38.345-17.167,38.345-38.345V126.618 C512,105.44,494.833,88.273,473.655,88.273z"/>
+                </svg>
+            </button>
+            <button id="btn-en" class="lang-btn" onclick="changeLang('en')">
+                <svg width="25px" height="25px" viewBox="0 -4 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_503_2952)">
+                    <rect width="28" height="20" rx="2" fill="white"/>
+                    <mask id="mask0_503_2952" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="28" height="20">
+                    <rect width="28" height="20" rx="2" fill="white"/>
+                    </mask>
+                    <g mask="url(#mask0_503_2952)">
+                    <rect width="28" height="20" fill="#0A17A7"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M-1.28244 -1.91644L10.6667 6.14335V-1.33333H17.3334V6.14335L29.2825 -1.91644L30.7737 0.294324L21.3263 6.66667H28V13.3333H21.3263L30.7737 19.7057L29.2825 21.9165L17.3334 13.8567V21.3333H10.6667V13.8567L-1.28244 21.9165L-2.77362 19.7057L6.67377 13.3333H2.95639e-05V6.66667H6.67377L-2.77362 0.294324L-1.28244 -1.91644Z" fill="white"/>
+                    <path d="M18.668 6.33219L31.3333 -2" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path d="M20.0128 13.6975L31.3666 21.3503" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path d="M8.00555 6.31046L-3.83746 -1.67099" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path d="M9.29006 13.6049L-3.83746 22.3105" stroke="#DB1F35" stroke-width="0.666667" stroke-linecap="round"/>
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M0 12H12V20H16V12H28V8H16V0H12V8H0V12Z" fill="#E6273E"/>
+                    </g>
+                    </g>
+                    <defs>
+                    <clipPath id="clip0_503_2952">
+                    <rect width="28" height="20" rx="2" fill="white"/>
+                    </clipPath>
+                    </defs>
+                </svg>
+            </button>
+        </div>
+        <div class="social-actions">
+            <a href="#" target="_blank" class="insta-btn" onclick="shareToInstagram(event)">
+                <svg width="22" height="22" viewBox="0 0 3364.7 3364.7" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <radialGradient id="grad0" cx="217.76" cy="3290.99" r="4271.92" gradientUnits="userSpaceOnUse"><stop offset=".09" stop-color="#fa8f21"/><stop offset=".78" stop-color="#d82d7e"/></radialGradient>
+                        <radialGradient id="grad1" cx="2330.61" cy="3182.95" r="3759.33" gradientUnits="userSpaceOnUse"><stop offset=".64" stop-color="#8c3aaa" stop-opacity="0"/><stop offset="1" stop-color="#8c3aaa"/></radialGradient>
+                    </defs>
+                    <path d="M853.2,3352.8c-200.1-9.1-308.8-42.4-381.1-70.6-95.8-37.3-164.1-81.7-236-153.5S119.7,2988.6,82.6,2892.8c-28.2-72.3-61.5-181-70.6-381.1C2,2295.4,0,2230.5,0,1682.5s2.2-612.8,11.9-829.3C21,653.1,54.5,544.6,82.5,472.1,119.8,376.3,164.3,308,236,236c71.8-71.8,140.1-116.4,236-153.5C544.3,54.3,653,21,853.1,11.9,1069.5,2,1134.5,0,1682.3,0c548,0,612.8,2.2,829.3,11.9,200.1,9.1,308.6,42.6,381.1,70.6,95.8,37.1,164.1,81.7,236,153.5s116.2,140.2,153.5,236c28.2,72.3,61.5,181,70.6,381.1,9.9,216.5,11.9,281.3,11.9,829.3,0,547.8-2,612.8-11.9,829.3-9.1,200.1-42.6,308.8-70.6,381.1-37.3,95.8-81.7,164.1-153.5,235.9s-140.2,116.2-236,153.5c-72.3,28.2-181,61.5-381.1,70.6-216.3,9.9-281.3,11.9-829.3,11.9-547.8,0-612.8-1.9-829.1-11.9" fill="url(#grad0)"/>
+                    <path d="M853.2,3352.8c-200.1-9.1-308.8-42.4-381.1-70.6-95.8-37.3-164.1-81.7-236-153.5S119.7,2988.6,82.6,2892.8c-28.2-72.3-61.5-181-70.6-381.1C2,2295.4,0,2230.5,0,1682.5s2.2-612.8,11.9-829.3C21,653.1,54.5,544.6,82.5,472.1,119.8,376.3,164.3,308,236,236c71.8-71.8,140.1-116.4,236-153.5C544.3,54.3,653,21,853.1,11.9,1069.5,2,1134.5,0,1682.3,0c548,0,612.8,2.2,829.3,11.9,200.1,9.1,308.6,42.6,381.1,70.6,95.8,37.1,164.1,81.7,236,153.5s116.2,140.2,153.5,236c28.2,72.3,61.5,181,70.6,381.1,9.9,216.5,11.9,281.3,11.9,829.3,0,547.8-2,612.8-11.9,829.3-9.1,200.1-42.6,308.8-70.6,381.1-37.3,95.8-81.7,164.1-153.5,235.9s-140.2,116.2-236,153.5c-72.3,28.2-181,61.5-381.1,70.6-216.3,9.9-281.3,11.9-829.3,11.9-547.8,0-612.8-1.9-829.1-11.9" fill="url(#grad1)"/>
+                    <path d="M1269.25,1689.52c0-230.11,186.49-416.7,416.6-416.7s416.7,186.59,416.7,416.7-186.59,416.7-416.7,416.7-416.6-186.59-416.6-416.7m-225.26,0c0,354.5,287.36,641.86,641.86,641.86s641.86-287.36,641.86-641.86-287.36-641.86-641.86-641.86-287.36-641.86-641.86-641.86-287.36-641.86-641.86-641.86-287.36-641.86-641.86-641.86S1044,1335,1044,1689.52m1159.13-667.31a150,150,0,1,0,150.06-149.94h-0.06a150.07,150.07,0,0,0-150,149.94M1180.85,2707c-121.87-5.55-188.11-25.85-232.13-43-58.36-22.72-100-49.78-143.78-93.5s-70.88-85.32-93.5-143.68c-17.16-44-37.46-110.26-43-232.13-6.06-131.76-7.27-171.34-7.27-505.15s1.31-373.28,7.27-505.15c5.55-121.87,26-188,43-232.13,22.72-58.36,49.78-100,93.5-143.78s85.32-70.88,143.78-93.5c44-17.16,110.26-37.46,232.13-43,131.76-6.06,171.34-7.27,505-7.27S2059.13,666,2191,672c121.87,5.55,188,26,232.13,43,58.36,22.62,100,49.78,143.78,93.5s70.78,85.42,93.5,143.78c17.16,44,37.46,110.26,43,232.13,6.06,131.87,7.27,171.34,7.27,505.15s-1.21,373.28-7.27,505.15c-5.55,121.87-25.95,188.11-43,232.13-22.72,58.36-49.78,100-93.5,143.68s-85.42,70.78-143.78,93.5c-44,17.16-110.26,37.46-232.13,43-131.76,6.06-171.34,7.27-505.15,7.27s-373.28-1.21-505-7.27M1170.5,447.09c-133.07,6.06-224,27.16-303.41,58.06-82.19,31.91-151.86,74.72-221.43,144.18S533.39,788.47,501.48,870.76c-30.9,79.46-52,170.34-58.06,303.41-6.16,133.28-7.57,175.89-7.57,515.35s1.41,382.07,7.57,515.35c6.06,133.08,27.16,223.95,58.06,303.41,31.91,82.19,74.62,152,144.18,221.43s139.14,112.18,221.43,144.18c79.56,30.9,170.34,52,303.41,58.06,133.35,6.06,175.89,7.57,515.35,7.57s382.07-1.41,515.35-7.57c133.08-6.06,223.95-27.16,303.41-58.06,82.19-32,151.86-74.72,221.43-144.18s112.18-139.24,144.18-221.43c30.9-79.46,52.1-170.34,58.06-303.41,6.06-133.38,7.47-175.89,7.47-515.35s-1.41-382.07-7.47-515.35c-6.06-133.08-27.16-224-58.06-303.41-32-82.19-74.72-151.86-144.18-221.43S2586.8,537.06,2504.71,505.15c-79.56-30.9-170.44-52.1-303.41-58.06C2068,441,2025.41,439.52,1686,439.52s-382.1,1.41-515.45,7.57" fill="#ffffff"/>
+                </svg>
+            </a>
+            <a href="#" target="_blank" class="insta-btn" onclick="shareToTiktok(event)">
+                <svg width="22" height="22" viewBox="0 0 250 250" xmlns="http://www.w3.org/2000/svg" style="border-radius:50%">
+                    <g clip-rule="evenodd" fill-rule="evenodd">
+                        <path d="M25 0h200c13.808 0 25 11.192 25 25v200c0 13.808-11.192 25-25 25H25c-13.808 0-25-11.192-25-25V25C0 11.192 11.192 0 25 0z" fill="#010101"/>
+                        <path d="M161.167 81.186c10.944 7.819 24.352 12.42 38.832 12.42V65.755a39.26 39.26 0 0 1-8.155-.853v21.923c-14.479 0-27.885-4.601-38.832-12.42v56.835c0 28.432-23.06 51.479-51.505 51.479-10.613 0-20.478-3.207-28.673-8.707C82.187 183.57 95.23 189.5 109.66 189.5c28.447 0 51.508-23.047 51.508-51.48V81.186zm10.06-28.098c-5.593-6.107-9.265-14-10.06-22.726V26.78h-7.728c1.945 11.09 8.58 20.565 17.788 26.308zm-80.402 99.107a23.445 23.445 0 0 1-4.806-14.256c0-13.004 10.548-23.547 23.561-23.547a23.6 23.6 0 0 1 7.147 1.103V87.022a51.97 51.97 0 0 0-8.152-.469v22.162a23.619 23.619 0 0 0-7.15-1.103c-13.013 0-23.56 10.543-23.56 23.548 0 9.195 5.272 17.157 12.96 21.035z" fill="#ee1d52"/>
+                        <path d="M153.012 74.405c10.947 7.819 24.353 12.42 38.832 12.42V64.902c-8.082-1.72-15.237-5.942-20.617-11.814-9.208-5.743-15.843-15.218-17.788-26.308H133.14v111.239c-.046 12.968-10.576 23.468-23.561 23.468-7.652 0-14.45-3.645-18.755-9.292-7.688-3.878-12.96-11.84-12.96-21.035 0-13.005 10.547-23.548 23.56-23.548 2.493 0 4.896.388 7.15 1.103V86.553c-27.945.577-50.42 23.399-50.42 51.467 0 14.011 5.597 26.713 14.68 35.993 8.195 5.5 18.06 8.707 28.673 8.707 28.445 0 51.505-23.048 51.505-51.479z" fill="#ffffff"/>
+                        <path d="M191.844 64.902v-5.928a38.84 38.84 0 0 1-20.617-5.887 38.948 38.948 0 0 0 20.617 11.815zM153.439 26.78a39.524 39.524 0 0 1-.427-3.198V20h-28.028v111.24c-.045 12.967-10.574 23.467-23.56 23.467-3.813 0-7.412-.904-10.6-2.512 4.305 5.647 11.103 9.292 18.755 9.292 12.984 0 23.515-10.5 23.561-23.468V26.78zm-44.864 59.773v-6.311a51.97 51.97 0 0 0-7.067-.479C73.06 79.763 50 102.811 50 131.24c0 17.824 9.063 33.532 22.835 42.772-9.083-9.28-14.68-21.982-14.68-35.993 0-28.067 22.474-50.889 50.42-51.466z" fill="#69c9d0"/>
+                    </g>
+                </svg>
+            </a>
+            <button class="share-btn" onclick="sharePage()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="comparison-container">
+        <img src="papiro_prima.jpg" class="papiro-img" id="before-img">
+        <img src="papiro_dopo.jpg" class="papiro-img" id="after-img">
+        <div class="swipe-line" id="swipe-line"></div>
+        <input type="range" min="0" max="100" value="100" id="slider">
+        <div class="swipe-hint-label" id="swipe-hint">← scorri →</div>
+        <div class="zoom-hint">🔍 doppio tap per zoom</div>
+    </div>
+
+    <div class="magic-btn-container">
+        <button class="magic-btn" id="magic-btn" onclick="createMagic()">
+            <span class="sparkle">✨</span>
+            <span id="magic-btn-text">CREA LA MAGIA</span>
+            <span class="sparkle">✨</span>
+        </button>
+    </div>
+
+    </div>
+
+    <!-- THUMBNAIL STRIP -->
+    <div class="thumb-strip">
+        <div class="thumb-item" onclick="openLightbox('papiro_verso_1.jpg', 'retro-caption')">
+            <img src="papiro_verso_1.jpg" alt="Retro del papiro">
+            <div class="thumb-label" id="thumb-label-retro">Il Retro del Papiro</div>
+        </div>
+        <div class="thumb-item" onclick="openLightbox('Ger18275.png', 'glyph-caption')">
+            <img src="Ger18275.png" alt="Schema geroglifici" style="object-fit:contain; background:#f5f0e8;">
+            <div class="thumb-label" id="thumb-label-glyph">Schema Geroglifici Ricostruiti</div>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX -->
+    <div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox(event)">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <img class="lightbox-img" id="lightbox-img" src="" alt="">
+        <div class="lightbox-caption" id="lightbox-caption"></div>
+    </div>
+
+    <div class="confidence-container fade-in-section">
+        <span class="confidence-label" id="conf-text">Affidabilità del Restauro: 85%</span>
+        <div class="confidence-bar-bg">
+            <div class="confidence-bar-fill"></div>
+        </div>
+    </div>
+
+    <div class="meta-section fade-in-section">
+        <div class="meta-item"><b id="meta-prov-lab">Provenienza:</b><br><span id="meta-prov-val">Tebe (?)</span></div>
+        <div class="meta-item"><b id="meta-acq-lab">Acquisizione:</b><br><span id="meta-acq-val">Bernardino Drovetti - 1824</span></div>
+        <div class="meta-item"><b id="meta-dyn-lab">Dinastia:</b><br><span id="meta-dyn-val">19ª (1292-1191 a.C.)</span></div>
+        <div class="meta-item"><b id="meta-base-lab">Datazione su base:</b><br><span id="meta-base-val">Paleografia; paralleli testuali; scrittura retrograda</span></div>
+        <div class="meta-item"><b>Material:</b><br>Cyperus Papyrus</div>
+        <div class="meta-item"><b id="meta-size-lab">Misure:</b><br>360 x 273 mm</div>
+        <div class="current-loc"><b id="meta-loc-lab">Posizione attuale:</b> <span id="meta-loc-val">Galleria della Scrittura - sezione 9/4</span></div>
+    </div>
+
+    <div class="content fade-in-section">
+        <div class="catalog-num">Cat. 1827/5</div>
+        <h2 id="title">Papiro con due capitoli del Libro dei Morti</h2>
+        <button class="audio-btn" id="audio-btn" onclick="speakText()">
+            <span class="audio-icon">🔊</span> <span id="audio-text">Ascolta la spiegazione</span>
+        </button>
+        <div id="desc-container">
+            <p id="desc-main"></p>
+            <p id="desc-details" style="font-size: 0.95em; color: #aaa; border-top: 1px inset #333; padding-top: 10px;"></p>
+        </div>
+        <div class="retro-block">
+            <div class="retro-block-title" id="retro-block-title">Il Retro del Papiro</div>
+            <p id="verso-text"></p>
+        </div>
+    </div>
+
+    <div class="faq-section fade-in-section">
+        <h3 class="faq-title" id="faq-section-title">Chiedi all'AI</h3>
+        <div id="ai-response"></div>
+        <div id="faq-container"></div>
+    </div>
+
+    <div class="external-links fade-in-section">
+        <a href="https://museoegizio.orpheo.app/" target="_blank" class="link-btn btn-museo">
+            <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg"><path d="M483.5 57l-10 30h-147l-10-30zm-288 0l-10 30h-147l-10-30zm260.4 48l30.2 302H445l-.2-210-32.8-73.1-32.8 73.1-.2 210h-18V199h-26.3l9.4-94zm-288 0l9.4 94H151v208h-18l-.2-210-32.8-73.1L67.2 197 67 407H25.9l30.2-302zM412 164.1l9.4 18.9h-18.8zm-312 0l9.4 18.9H90.6zM427 201v206h-30V201zm-312 0v206H85V201zm228 16v30H169v-30zm0 48v142h-30V295H199v112h-30V265zm144 160v62H342.1l-24.8-62zm-189.1 0l8.4 21H205.7l8.4-21zm-103.2 0l-24.8 62H25v-62zm118.8 39l9.2 23H189.3l9.2-23z"/></svg>
+            SITO MUSEO
+        </a>
+        <a href="https://www.youtube.com/@museo-egizio" target="_blank" class="link-btn btn-yt">
+            <svg viewBox="0 -7 48 48" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+                <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+                    <g id="Color-" transform="translate(-200.000000, -368.000000)" fill="#CE1312">
+                        <path d="M219.044,391.269916 L219.0425,377.687742 L232.0115,384.502244 L219.044,391.269916 Z M247.52,375.334163 C247.52,375.334163 247.0505,372.003199 245.612,370.536366 C243.7865,368.610299 241.7405,368.601235 240.803,368.489448 C234.086,368 224.0105,368 224.0105,368 L223.9895,368 C223.9895,368 213.914,368 207.197,368.489448 C206.258,368.601235 204.2135,368.610299 202.3865,370.536366 C200.948,372.003199 200.48,375.334163 200.48,375.334163 C200.48,375.334163 200,379.246723 200,383.157773 L200,386.82561 C200,390.73817 200.48,394.64922 200.48,394.64922 C200.48,394.64922 200.948,397.980184 202.3865,399.447016 C204.2135,401.373084 206.612,401.312658 207.68,401.513574 C211.52,401.885191 224,402 224,402 C224,402 234.086,401.984894 240.803,401.495446 C241.7405,401.382148 243.7865,401.373084 245.612,399.447016 C247.0505,397.980184 247.52,394.64922 247.52,394.64922 C247.52,394.64922 248,390.73817 248,386.82561 L248,383.157773 C248,379.246723 247.52,375.334163 247.52,375.334163 L247.52,375.334163 Z" id="Youtube"></path>
+                    </g>
+                </g>
+            </svg>
+            YOUTUBE
+        </a>
+        <a href="https://virtualtour.museoegizio.it/" target="_blank" class="link-btn btn-vt">
+            <svg viewBox="0 0 24 24" id="Layer_1" data-name="Layer 1" xmlns="http://www.w3.org/2000/svg"><defs><style>.cls-1{fill:none;stroke-miterlimit:10;stroke-width:1.95px;}</style></defs><path class="cls-1" d="M6.14,17.59A34.11,34.11,0,0,1,12,17.11a34.11,34.11,0,0,1,5.86.48"/><line class="cls-1" x1="22.73" y1="20.04" x2="22.73" y2="4.43"/><line class="cls-1" x1="1.27" y1="20.04" x2="1.27" y2="4.43"/><path class="cls-1" d="M1.27,20c0,1,1.94,1.93,4.87,2.46V6.89C3.21,6.36,1.27,5.46,1.27,4.43,1.27,2.81,6.07,1.5,12,1.5S22.73,2.81,22.73,4.43c0,1-1.94,1.93-4.87,2.46V22.5c2.93-.53,4.87-1.42,4.87-2.46"/><polygon class="cls-1" points="12.98 10.28 11.02 11.26 11.02 9.31 12.98 10.28 12.98 10.28"/></svg>
+            VIRTUAL TOUR
+        </a>
+    </div>
+
+    <div class="hashtag-footer">
+        <a href="https://www.instagram.com/explore/tags/mescripta/" target="_blank">#ME-Scripta</a>
+    </div>
+
+    <!-- SHARE POPUP -->
+    <div class="share-overlay" id="share-overlay" onclick="closeSharePopup(event)">
+        <div class="share-modal">
+            <button class="share-close" onclick="closeSharePopup()">✕</button>
+            <h3>✦ Condividi</h3>
+            <p>Copia il testo e incollalo nel tuo post su Instagram o TikTok:</p>
+            <div class="share-text-box" id="share-text-box">Scopri il papiro del Libro dei Morti al Museo Egizio di Torino — una finestra sull'antico Egitto, restaurata digitalmente. 🪶 #ME-Scripta #MuseoEgizio #LibroDeiMorti #EgittoAntico</div>
+            <button class="share-copy-btn" id="share-copy-btn" onclick="copyShareText()">📋 Copia testo e hashtag</button>
+            <div class="share-platforms">
+                <button class="share-platform-btn" onclick="openAfterCopy('instagram')">Apri Instagram</button>
+                <button class="share-platform-btn" onclick="openAfterCopy('tiktok')">Apri TikTok</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CREA LA MAGIA ---
+        // before-img = frammento (sempre visibile di default)
+        // after-img  = restaurato (nascosto, rivelato dal pulsante)
+        function createMagic() {
+            const btn = document.getElementById('magic-btn');
+            const btnText = document.getElementById('magic-btn-text');
+            const afterImg = document.getElementById('after-img');
+            const beforeImg = document.getElementById('before-img');
+            const sliderEl = document.getElementById('slider');
+
+            const isRestored = btn.dataset.state === 'restored';
+            btn.disabled = true;
+            btn.classList.add('animating');
+            sliderEl.disabled = true;
+
+            const duration = 3000;
+            const start = performance.now();
+
+            if (!isRestored) {
+                // Frammento → Restaurato: afterImg (restaurato) fa fade da invisibile a visibile sopra tutto
+                btnText.textContent = 'LA MAGIA È IN CORSO...';
+                afterImg.style.clipPath = 'none';
+                afterImg.style.zIndex = '2';
+                afterImg.style.opacity = '0';
+                beforeImg.style.zIndex = '1';
+
+                function fadeIn(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const eased = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    afterImg.style.opacity = eased;
+                    if (progress < 1) {
+                        requestAnimationFrame(fadeIn);
+                    } else {
+                        afterImg.style.opacity = '1';
+                        // Vibrazione aptica (Android)
+                        if (navigator.vibrate) navigator.vibrate([40, 30, 80]);
+                        // Pulse visivo sul contenitore
+                        document.querySelector('.comparison-container').classList.add('magic-complete');
+                        setTimeout(() => document.querySelector('.comparison-container').classList.remove('magic-complete'), 1200);
+                        sliderEl.value = 0;
+                        swipeLine.style.left = '0%';
+                        sliderEl.disabled = false;
+                        btn.classList.remove('animating');
+                        btn.disabled = false;
+                        btn.dataset.state = 'restored';
+                        btnText.textContent = "RITORNA ALL'ORIGINALE";
+                    }
+                }
+                requestAnimationFrame(fadeIn);
+
+            } else {
+                // Restaurato → Frammento: beforeImg (frammento) appare sopra tutto in fade
+                btnText.textContent = 'RITORNO IN CORSO...';
+                beforeImg.style.zIndex = '3';
+                beforeImg.style.opacity = '0';
+                swipeLine.style.left = '100%';
+
+                function fadeInBefore(now) {
+                    const progress = Math.min((now - start) / duration, 1);
+                    const eased = progress < 0.5
+                        ? 2 * progress * progress
+                        : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+                    beforeImg.style.opacity = eased;
+                    if (progress < 1) {
+                        requestAnimationFrame(fadeInBefore);
+                    } else {
+                        // Ripristina tutto allo stato iniziale
+                        beforeImg.style.opacity = '1';
+                        beforeImg.style.zIndex = '1';
+                        afterImg.style.opacity = '1';
+                        afterImg.style.clipPath = 'inset(0 0 0 100%)';
+                        afterImg.style.zIndex = '2';
+                        sliderEl.value = 100;
+                        sliderEl.disabled = false;
+                        btn.classList.remove('animating');
+                        btn.disabled = false;
+                        btn.dataset.state = 'original';
+                        btnText.textContent = 'CREA LA MAGIA';
+                    }
+                }
+                requestAnimationFrame(fadeInBefore);
+            }
+        }
+
+        const slider = document.getElementById('slider');
+        const afterImg = document.getElementById('after-img');
+        const swipeLine = document.getElementById('swipe-line');
+
+        // --- ZOOM doppio tap/click ---
+        (function() {
+            const container = document.querySelector('.comparison-container');
+            let lastTap = 0;
+            let zoomed = false;
+            let tapTimer = null;
+
+            function toggleZoom(clientX, clientY) {
+                zoomed = !zoomed;
+                const rect = container.getBoundingClientRect();
+                if (zoomed) {
+                    const px = ((clientX - rect.left) / rect.width * 100).toFixed(1) + '%';
+                    const py = ((clientY - rect.top) / rect.height * 100).toFixed(1) + '%';
+                    container.style.setProperty('--zoom-x', px);
+                    container.style.setProperty('--zoom-y', py);
+                }
+                container.classList.toggle('zoomed', zoomed);
+                document.getElementById('slider').style.pointerEvents = zoomed ? 'none' : 'auto';
+            }
+
+            // Touch: doppio tap con touchstart (più reattivo di touchend)
+            container.addEventListener('touchstart', (e) => {
+                const now = Date.now();
+                const gap = now - lastTap;
+                if (gap < 350 && gap > 30) {
+                    e.preventDefault();
+                    if (tapTimer) { clearTimeout(tapTimer); tapTimer = null; }
+                    const t = e.touches[0];
+                    toggleZoom(t.clientX, t.clientY);
+                } else {
+                    tapTimer = setTimeout(() => { tapTimer = null; }, 350);
+                }
+                lastTap = now;
+            }, { passive: false });
+
+            // Mouse: doppio click desktop
+            container.addEventListener('dblclick', (e) => {
+                toggleZoom(e.clientX, e.clientY);
+            });
+        })();
+
+        // --- SCROLL FADE-IN ---
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.fade-in-section').forEach(el => observer.observe(el));
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                slider.classList.add('hint-active');
+                setTimeout(() => slider.classList.remove('hint-active'), 2000);
+            }, 800);
+            // Rimuovi label dopo animazione
+            setTimeout(() => {
+                const hint = document.getElementById('swipe-hint');
+                if (hint) hint.remove();
+            }, 7000);
+        });
+
+        // Nasconde hint al primo tocco/drag
+        slider.addEventListener('pointerdown', () => {
+            const hint = document.getElementById('swipe-hint');
+            if (hint) hint.remove();
+        }, { once: true });
+
+        slider.oninput = (e) => {
+            const afterImg = document.getElementById('after-img');
+            afterImg.style.opacity = '1';
+            afterImg.style.clipPath = `inset(0 0 0 ${e.target.value}%)`;
+            swipeLine.style.left = `${e.target.value}%`;
+        };
+
+        const data = {
+            it: {
+                title: "Papiro con due capitoli del Libro dei Morti",
+                confText: "Affidabilità del Restauro: 85%",
+                audioText: "Ascolta la spiegazione",
+                meta: {
+                    prov: "Provenienza:", provV: "Tebe (?)",
+                    acq: "Acquisizione:", acqV: "Bernardino Drovetti - 1824",
+                    dyn: "Dinastia:", dynV: "19ª (1292-1191 a.C.)",
+                    base: "Datazione su base:", baseV: "Paleografia; paralleli testuali; scrittura retrograda",
+                    size: "Misure:", loc: "Posizione attuale:", locV: "Galleria della Scrittura - sezione 9/4"
+                },
+                descMain: "Il reperto Cat. 1827/5 è composto da una serie di frammenti appartenenti a un unico papiro risalente al Nuovo Regno. Il recto mostra una vignetta policroma che ritrae un uccello con testa e piedi umani; questa è la rappresentazione di una delle parti dello spirito del defunto, quella chiamata Ba, parola spesso tradotta come 'anima'.",
+                descDetails: "Il testo scritto in geroglifici corsivi contiene due capitoli incompleti del Libro dei Morti. Nello specifico, i frammenti contengono le formule 84 e 85, appartenenti al gruppo delle formule di trasformazione. Queste formule permettevano al defunto di assumere diverse forme, in questi capitoli la forma di un airone e quella di un Ba vivente, permettendo al defunto di acquisire i loro comportamenti e caratteristiche simboliche per affrontare il viaggio nell'aldilà. Insolita, dato il contenuto del recto, è la presenza sul retro di una singola linea di geroglifici, anch'essa incompleta e di dubbia interpretazione, probabilmente parte di una formula di offerta.",
+                faqTitle: "Chiedi all'AI",
+                versoTitle: "Il Retro del Papiro",
+                versoText: "Sul retro del papiro è presente una sola riga di geroglifici, incompleta e di interpretazione incerta. Considerati i pochi paralleli esistenti, potrebbe far parte di una formula Htp-di-nswt — la classica formula di offerta funeraria con cui si invocava il re e gli dei per garantire al defunto pane, birra, buoi e oche nell'aldilà. La sua presenza sul retro di un papiro già scritto è insolita e suggerisce un possibile riutilizzo del supporto da parte dello scriba.",
+                glyphTitle: "Schema dei caratteri geroglifici ricostruiti",
+                glyphCaption: "Ricostruzione delle colonne di geroglifici — le aree tratteggiate indicano le lacune integrate",
+                questions: [
+                    "Perché il papiro è in frammenti?", 
+                    "Cosa succede trasformandosi in airone?", 
+                    "Il retro del papiro?", 
+                    "Geroglifici corsivi?",
+                    "Chi era il proprietario?", 
+                    "Cos'è il Libro dei Morti?", 
+                    "Perché la 19ª Dinastia è importante?", 
+                    "Cosa significa 'scrittura retrograda'?"
+                ],
+                answers: [
+                    "Questi frammenti (Cat. 1827) appartenevano a un insieme di cinquanta e più pezzi incollati nell'Ottocento su carta sugante, senza un ordine preciso. Nel tempo, l'umidità e la manipolazione hanno accelerato il degrado. Il restauro virtuale che vedi cerca di ridare senso a questo puzzle millenario, ricomponendo le formule e le vignette originali.",
+                    "La formula 84 permetteva al defunto di diventare un airone Benu, uccello sacro legato al sole nascente. Trasformandosi, il defunto acquisiva il potere di 'volare via' dal mondo dei morti per tornare a vedere la luce ogni mattina, proprio come il sole che risorge ogni alba.",
+                    "Il retro del papiro presenta una singola riga di geroglifici incompleta e di dubbia interpretazione, insolita per un testo funerario di questo tipo. Gli studiosi ipotizzano che si tratti di parte di una formula di offerta, o che il foglio sia stato riutilizzato da uno scriba per un appunto secondario.",
+                    "I geroglifici corsivi, detti anche 'ieratici funerari', erano una forma di scrittura semplificata usata per i testi sacri. Più rapida da tracciare rispetto ai geroglifici monumentali incisi nella pietra, permetteva agli scribi di copiare lunghi testi come il Libro dei Morti su papiro con maggiore velocità.",
+                    "Nei frammenti compaiono i nomi di Har-em-ua e Baka, entrambi seguiti dal titolo 'giustificato', segno che erano già defunti al momento della scrittura. Possedere un papiro così finemente illustrato indica che erano persone di alto rango nella società della XIX Dinastia, probabilmente funzionari o sacerdoti.",
+                    "Non era un vero 'libro', ma una raccolta di formule magiche scritte su papiro e poste nelle tombe. Servivano come una sorta di 'manuale di istruzioni' per superare mostri e prove nel tribunale di Osiride, dio dei morti, e ottenere la vita eterna nell'aldilà.",
+                    "La XIX Dinastia è l'epoca di Ramesse II, il faraone più celebre dell'antico Egitto. Fu un periodo di grande splendore artistico e religioso: la produzione di papiri funerari raggiunse il suo apice, con illustrazioni sempre più elaborate e testi accuratamente copiati dagli scribi del tempio.",
+                    "Nella scrittura retrograda i segni geroglifici sono rivolti verso l'inizio della riga anziché verso la fine, come avviene di norma. Questo accorgimento, tipico di alcuni testi magici e funerari, aveva probabilmente una funzione protettiva: si credeva che invertire i segni neutralizzasse il potere dei geroglifici raffiguranti esseri viventi."
+                ]
+            },
+            en: {
+                title: "Papyrus with two chapters from the Book of the Dead",
+                confText: "Restoration Reliability: 85%",
+                audioText: "Listen to explanation",
+                meta: {
+                    prov: "Provenance:", provV: "Thebes (?)",
+                    acq: "Acquisition:", acqV: "Bernardino Drovetti - 1824",
+                    dyn: "Dynasty:", dynV: "19 (1292-1191 BC)",
+                    base: "Bases for date:", baseV: "Paleography; textual Parallels; Retrograde writing",
+                    size: "Measurements:", loc: "Current location:", locV: "Galleria della Scrittura - section 9/4"
+                },
+                descMain: "Cat. 1827/5 consists of a series of fragments belonging to a single papyrus dating to the New Kingdom. The recto shows a polychrome vignette depicting a bird with human head and feet; this is the representation of one of the parts of the spirit of the deceased, the one called ba, a word often translated as 'soul'.",
+                descDetails: "The text written in cursive hieroglyphs contains two incomplete chapters of the Book of the Dead. Specifically, the fragments contain the spells 84 and 85, belonging to the group of transformation spells. Those spells would allow the deceased to take different formes, in this chapters the shape of a heron and the one of a living Ba, allowing the deceased to acquire their behaviors and symbolic characteristics to face the journey through the afterlife. Unusual, given the content of the recto, is the presence on the back of a single line of hieroglyphs, also incomplete and of dubious interpretation, probably being part of an offering formula.",
+                faqTitle: "Ask the AI",
+                versoTitle: "The Verso of the Papyrus",
+                versoText: "On the verso there is only one line of hieroglyphics, incomplete and of uncertain interpretation. Considering the few existing parallels, it could be part of a Htp-di-nswt formula — the classic funerary offering formula invoking the king and gods to provide the deceased with bread, beer, oxen and geese in the afterlife. Its presence on the back of an already-written papyrus is unusual and suggests a possible reuse of the support by the scribe.",
+                glyphTitle: "Reconstructed hieroglyphic character schema",
+                glyphCaption: "Reconstruction of hieroglyphic columns — hatched areas indicate integrated lacunae",
+                questions: [
+                    "Why is the papyrus fragmented?", 
+                    "What happens when transformed into a heron?", 
+                    "The back of the papyrus?", 
+                    "Cursive hieroglyphs?",
+                    "Who owned this papyrus?", 
+                    "What is the Book of the Dead?", 
+                    "Why is the 19th Dynasty important?", 
+                    "What is retrograde writing?"
+                ],
+                answers: [
+                    "These fragments (Cat. 1827) were part of a group of fifty or more pieces glued onto blotting paper in the 19th century without any particular order. Over time, humidity and handling accelerated their deterioration. The virtual restoration you see attempts to reassemble this ancient puzzle by reconstructing the original spells and vignettes.",
+                    "Spell 84 allowed the deceased to become a Benu heron, the sacred bird associated with the rising sun. By transforming, the deceased gained the power to 'fly away' from the realm of the dead and witness the light each morning, just as the sun is reborn at every dawn.",
+                    "The back of the papyrus contains a single incomplete line of hieroglyphs of uncertain interpretation, unusual for a funerary text of this kind. Scholars suggest it may be part of an offering formula, or that the sheet was reused by a scribe for a secondary note.",
+                    "Cursive hieroglyphs, also known as 'funerary hieratic', were a simplified form of writing used for sacred texts. Faster to trace than monumental hieroglyphs carved in stone, they allowed scribes to copy long texts like the Book of the Dead onto papyrus more quickly.",
+                    "The fragments bear the names Har-em-ua and Baka, both followed by the title 'justified', indicating they were already deceased at the time of writing. Owning such a finely illustrated papyrus suggests they were high-ranking individuals in 19th Dynasty society, likely officials or priests.",
+                    "It was not a true 'book', but a collection of magical spells written on papyrus and placed in tombs. They served as a kind of instruction manual for overcoming monsters and trials in the court of Osiris, god of the dead, in order to attain eternal life.",
+                    "The 19th Dynasty is the era of Ramesses II, ancient Egypt's most celebrated pharaoh. It was a period of great artistic and religious splendour: the production of funerary papyri reached its peak, with increasingly elaborate illustrations and texts carefully copied by temple scribes.",
+                    "In retrograde writing, hieroglyphic signs face the beginning of the line rather than the end, as is normally the case. This practice, typical of certain magical and funerary texts, likely had a protective function: inverting the signs was believed to neutralise the power of glyphs depicting living creatures."
+                ]
+            }
+        };
+
+        let currentLang = 'it';
+
+        function changeLang(lang) {
+            currentLang = lang;
+            document.getElementById('title').innerText = data[lang].title;
+            document.getElementById('conf-text').innerText = data[lang].confText;
+            document.getElementById('desc-main').innerText = data[lang].descMain;
+            document.getElementById('desc-details').innerText = data[lang].descDetails;
+            document.getElementById('audio-text').innerText = data[lang].audioText;
+            document.getElementById('faq-section-title').innerText = data[lang].faqTitle;
+            document.getElementById('verso-text').innerText = data[lang].versoText;
+            document.getElementById('retro-block-title').innerText = data[lang].versoTitle;
+            document.getElementById('thumb-label-retro').innerText = data[lang].versoTitle;
+            document.getElementById('thumb-label-glyph').innerText = data[lang].glyphTitle;
+            // Aggiorna lightbox se aperto
+            if (currentCaptionKey) {
+                document.getElementById('lightbox-caption').textContent = lightboxCaptions[currentCaptionKey]?.[lang] || '';
+            }
+
+            document.getElementById('meta-prov-lab').innerText = data[lang].meta.prov;
+            document.getElementById('meta-prov-val').innerText = data[lang].meta.provV;
+            document.getElementById('meta-acq-lab').innerText = data[lang].meta.acq;
+            document.getElementById('meta-acq-val').innerText = data[lang].meta.acqV;
+            document.getElementById('meta-dyn-lab').innerText = data[lang].meta.dyn;
+            document.getElementById('meta-dyn-val').innerText = data[lang].meta.dynV;
+            document.getElementById('meta-base-lab').innerText = data[lang].meta.base;
+            document.getElementById('meta-base-val').innerText = data[lang].meta.baseV;
+            document.getElementById('meta-size-lab').innerText = data[lang].meta.size;
+            document.getElementById('meta-loc-lab').innerText = data[lang].meta.loc;
+            document.getElementById('meta-loc-val').innerText = data[lang].meta.locV;
+            
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${lang}`).classList.add('active');
+
+            const container = document.getElementById('faq-container');
+            container.innerHTML = '';
+            data[lang].questions.forEach((q, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'faq-btn';
+                btn.innerText = q;
+                btn.onclick = () => showAnswer(i);
+                container.appendChild(btn);
+            });
+            document.getElementById('ai-response').style.display = 'none';
+        }
+
+        function showAnswer(index) {
+            const res = document.getElementById('ai-response');
+            res.style.display = 'block';
+            res.innerText = data[currentLang].answers[index];
+            res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // --- LIGHTBOX ---
+        const lightboxCaptions = {
+            'retro-caption': {
+                it: 'Il retro del papiro Cat. 1827/5 — riga di geroglifici della formula Htp-di-nswt',
+                en: 'The verso of papyrus Cat. 1827/5 — hieroglyphic line of the Htp-di-nswt formula'
+            },
+            'glyph-caption': {
+                it: 'Schema dei caratteri geroglifici ricostruiti — le aree tratteggiate indicano le lacune integrate',
+                en: 'Reconstructed hieroglyphic character schema — hatched areas indicate integrated lacunae'
+            }
+        };
+        let currentCaptionKey = '';
+
+        function openLightbox(src, captionKey) {
+            currentCaptionKey = captionKey;
+            document.getElementById('lightbox-img').src = src;
+            document.getElementById('lightbox-caption').textContent = lightboxCaptions[captionKey][currentLang];
+            document.getElementById('lightbox-overlay').classList.add('active');
+        }
+
+        function closeLightbox(e) {
+            if (!e || e.target === document.getElementById('lightbox-overlay') || e.currentTarget.classList.contains('lightbox-close')) {
+                document.getElementById('lightbox-overlay').classList.remove('active');
+            }
+        }
+        const shareTextIT = 'Scopri il papiro del Libro dei Morti al Museo Egizio di Torino — una finestra sull\'antico Egitto, restaurata digitalmente. 🪶 #ME-Scripta #MuseoEgizio #LibroDeiMorti #EgittoAntico';
+        const shareTextEN = 'Discover the Book of the Dead papyrus at the Museo Egizio in Turin — a window into ancient Egypt, digitally restored. 🪶 #ME-Scripta #MuseoEgizio #BookOfTheDead #AncientEgypt';
+
+        function shareToInstagram(e) {
+            e.preventDefault();
+            triggerShare('instagram');
+        }
+
+        function shareToTiktok(e) {
+            e.preventDefault();
+            triggerShare('tiktok');
+        }
+
+        function triggerShare(platform) {
+            const text = currentLang === 'it' ? shareTextIT : shareTextEN;
+            // Aggiorna testo nel popup
+            document.getElementById('share-text-box').textContent = text;
+
+            // Prova Web Share API (mobile nativo)
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Cat. 1827/5 - Museo Egizio',
+                    text: text,
+                    url: window.location.href
+                }).catch(() => {
+                    // Utente ha annullato o non supportato: mostra popup
+                    showSharePopup(platform);
+                });
+            } else {
+                showSharePopup(platform);
+            }
+        }
+
+        function showSharePopup(platform) {
+            document.getElementById('share-overlay').classList.add('active');
+            document.getElementById('share-overlay').dataset.platform = platform || '';
+            // Reset bottone copia
+            const btn = document.getElementById('share-copy-btn');
+            btn.textContent = '📋 Copia testo e hashtag';
+            btn.classList.remove('copied');
+        }
+
+        function closeSharePopup(e) {
+            if (!e || e.target === document.getElementById('share-overlay') || e.currentTarget === document.querySelector('.share-close')) {
+                document.getElementById('share-overlay').classList.remove('active');
+            }
+        }
+
+        function copyShareText() {
+            const text = document.getElementById('share-text-box').textContent;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('share-copy-btn');
+                btn.textContent = '✓ Copiato!';
+                btn.classList.add('copied');
+            });
+        }
+
+        function openAfterCopy(platform) {
+            copyShareText();
+            setTimeout(() => {
+                if (platform === 'instagram') {
+                    window.location.href = 'instagram://camera';
+                    setTimeout(() => window.open('https://www.instagram.com/create/story/', '_blank'), 1500);
+                } else {
+                    window.location.href = 'snssdk1233://';
+                    setTimeout(() => window.open('https://www.tiktok.com/upload', '_blank'), 1500);
+                }
+            }, 600);
+        }
+
+        function sharePage() {
+            triggerShare('');
+        }
+
+        function speakText() {
+            window.speechSynthesis.cancel();
+            const btn = document.getElementById('audio-btn');
+            if (btn.classList.contains('speaking')) {
+                btn.classList.remove('speaking');
+                return;
+            }
+            const textToRead = data[currentLang].descMain + " " + data[currentLang].descDetails;
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            utterance.lang = currentLang === 'it' ? 'it-IT' : 'en-US';
+            utterance.onend = () => btn.classList.remove('speaking');
+            btn.classList.add('speaking');
+            window.speechSynthesis.speak(utterance);
+        }
+
+        changeLang('it');
+    </script>
+</body>
+</html>
