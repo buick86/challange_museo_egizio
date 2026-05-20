@@ -106,16 +106,172 @@
         #slider.hint-active::-moz-range-thumb     { animation: hintPulse 1.2s ease 0.3s 1; }
 
         /* INTRO GATE */
-        .start-screen, .intro-screen, .level-two-screen, .confirm-screen, .game-over-screen, .intermediate-screen { width: 100%; min-height: calc(100vh - 24px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; text-align: center; padding: 20px 0 32px; overflow-y: auto; }
+        .start-screen, .scribe-screen, .intro-screen, .level-two-screen, .confirm-screen, .game-over-screen, .intermediate-screen { width: 100%; min-height: calc(100vh - 24px); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 14px; text-align: center; padding: 20px 0 32px; overflow-y: auto; }
         .main-experience { width: 100%; display: none; flex-direction: column; align-items: center; }
-        .intro-screen, .level-two-screen, .confirm-screen, .game-over-screen, .intermediate-screen { display: none; }
-        body.show-intro .start-screen, body.show-level-two .start-screen, body.show-confirm .start-screen, body.show-game-over .start-screen, body.show-main .start-screen, body.show-intermediate .start-screen { display: none; }
+        .scribe-screen, .intro-screen, .level-two-screen, .confirm-screen, .game-over-screen, .intermediate-screen { display: none; }
+        body.show-scribe .start-screen, body.show-intro .start-screen, body.show-level-two .start-screen, body.show-confirm .start-screen, body.show-game-over .start-screen, body.show-main .start-screen, body.show-intermediate .start-screen { display: none; }
+        body.show-scribe .scribe-screen { display: flex; }
         body.show-intro .intro-screen { display: flex; }
         body.show-level-two .level-two-screen { display: flex; }
         body.show-confirm .confirm-screen { display: flex; }
         body.show-game-over .game-over-screen { display: flex; }
         body.show-main .main-experience { display: flex; }
         body.show-intermediate .intermediate-screen { display: flex; }
+
+        /* SCRIBE PHOTO SCREEN */
+        .scribe-gate-scene {
+            position: relative;
+            width: min(94vw, 760px);
+            height: clamp(300px, 56vw, 470px);
+            overflow: hidden;
+            border: 4px solid var(--bright-gold);
+            border-radius: 8px;
+            background-color: #87ceeb;
+            background-image: linear-gradient(rgba(255,223,0,0.08), rgba(23,12,0,0.18)), url('https://image.qwenlm.ai/public_source/2c4db40c-35bf-4fd3-aefe-a6371e373bc3/1c59c7c5b-3605-47eb-888e-0e6b1d4d0041.png');
+            background-size: cover;
+            background-position: center bottom;
+            box-shadow: 0 0 0 4px #38210a, 0 0 36px rgba(255,215,0,0.32);
+            image-rendering: pixelated;
+            isolation: isolate;
+        }
+        .scribe-gate-status {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            z-index: 8;
+            padding: 8px 10px;
+            border: 2px solid rgba(255,223,0,0.75);
+            background: rgba(10,8,3,0.74);
+            color: var(--bright-gold);
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.72rem, 2vw, 0.9rem);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-shadow: 0 1px 0 #000;
+        }
+        .scribe-gate-papyrus-stage {
+            position: absolute;
+            right: clamp(18px, 9vw, 94px);
+            bottom: 10%;
+            width: clamp(92px, 22vw, 178px);
+            z-index: 4;
+        }
+        .scribe-gate-papyrus {
+            width: 100%;
+            display: block;
+            image-rendering: pixelated;
+            mix-blend-mode: multiply;
+            filter: drop-shadow(5px 5px 0 rgba(0,0,0,0.32));
+        }
+        .scribe-gate-focus {
+            position: absolute;
+            inset: 5% -8% 7%;
+            border: 3px solid #72ff6a;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.45), 0 0 14px rgba(114,255,106,0.95);
+            opacity: 0;
+            transform: scale(0.88);
+            pointer-events: none;
+        }
+        .scribe-gate-scene.is-framing .scribe-gate-focus {
+            animation: scribeGateFocus 0.75s ease-out forwards;
+        }
+        .scribe-gate-flash {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+        }
+        .scribe-gate-scene.is-flashing .scribe-gate-flash {
+            animation: scribeGateFlash 0.58s ease-out;
+        }
+        .scribe-gate-character {
+            position: absolute;
+            left: -34%;
+            bottom: 8%;
+            width: clamp(132px, 28vw, 230px);
+            z-index: 6;
+            image-rendering: pixelated;
+            mix-blend-mode: multiply;
+            filter: drop-shadow(5px 5px 0 rgba(0,0,0,0.35));
+        }
+        .scribe-gate-scene.is-running .scribe-gate-character {
+            animation: scribeGateWalkIn 7.8s linear forwards, scribeGateBob 0.48s steps(2, end) 8;
+        }
+        .scribe-gate-scene.is-framing .scribe-gate-character,
+        .scribe-gate-scene.is-flashing .scribe-gate-character {
+            left: 43%;
+        }
+        .scribe-gate-scene.is-leaving .scribe-gate-character {
+            animation: scribeGateLeave 2.4s linear forwards, scribeGateBob 0.48s steps(2, end) infinite;
+        }
+        .scribe-gate-scene.is-done .scribe-gate-character {
+            left: 112%;
+        }
+        .scribe-gate-next {
+            min-height: 50px;
+            min-width: min(92vw, 260px);
+            padding: 0 22px;
+            border: 3px solid var(--bright-gold);
+            border-radius: 8px;
+            background: #1a1200;
+            color: var(--bright-gold);
+            font-family: 'Cinzel', serif;
+            font-size: clamp(0.95rem, 3vw, 1.12rem);
+            letter-spacing: 2px;
+            cursor: pointer;
+            box-shadow: 0 0 0 3px #38210a, 0 0 24px rgba(255,215,0,0.28);
+            opacity: 0;
+            transform: translateY(8px);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease;
+        }
+        .scribe-gate-next.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+        .scribe-gate-next:hover {
+            background: var(--bright-gold);
+            color: #000;
+        }
+        @keyframes scribeGateWalkIn {
+            0% { left: -34%; }
+            50%, 100% { left: 43%; }
+        }
+        @keyframes scribeGateLeave {
+            0% { left: 43%; }
+            100% { left: 112%; }
+        }
+        @keyframes scribeGateBob {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-9px); }
+        }
+        @keyframes scribeGateFocus {
+            0% { opacity: 0; transform: scale(0.88); }
+            55% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes scribeGateFlash {
+            0% { opacity: 0; }
+            12% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+        @media (max-width: 520px) {
+            .scribe-gate-scene { height: 330px; }
+            .scribe-gate-papyrus-stage { right: 18px; width: 106px; }
+            .scribe-gate-scene.is-framing .scribe-gate-character,
+            .scribe-gate-scene.is-flashing .scribe-gate-character { left: 33%; }
+            @keyframes scribeGateWalkIn {
+                0% { left: -48%; }
+                50%, 100% { left: 33%; }
+            }
+            @keyframes scribeGateLeave {
+                0% { left: 33%; }
+                100% { left: 112%; }
+            }
+        }
 
         /* INTERMEDIATE SCREEN */
         .intermediate-logo { width: min(72vw, 280px); height: auto; display: block; margin: 0 auto; filter: drop-shadow(0 0 18px rgba(212,175,55,0.45)); }
@@ -408,9 +564,23 @@
     <img class="museum-symbol" src="simbolo.png" alt="Museo Egizio" loading="lazy" decoding="async">
 
     <section class="start-screen" aria-label="Schermata iniziale">
-        <button class="start-button" type="button" onclick="showIntermediate()" aria-label="Inizia Me Scripta Invaders">
+        <button class="start-button" type="button" onclick="showScribeGate()" aria-label="Inizia Me Scripta Invaders">
             <img class="start-img" src="screen.jpg" alt="Schermata iniziale Me Scripta Invaders, premi per iniziare">
         </button>
+    </section>
+
+    <section class="scribe-screen" aria-label="Fotografia del papiro">
+        <div class="scribe-gate-scene" id="scribe-gate-scene" aria-label="Animazione dello scriba che fotografa il papiro">
+            <div class="scribe-gate-status" id="scribe-gate-status">LO SCRIBA ARRIVA...</div>
+            <div class="scribe-gate-papyrus-stage">
+                <div class="scribe-gate-focus" aria-hidden="true"></div>
+                <img class="scribe-gate-papyrus" src="https://image.qwenlm.ai/public_source/2c4db40c-35bf-4fd3-aefe-a6371e373bc3/1dbc84ac2-6866-442d-a933-1a5fd7c263b4.png" alt="Papiro in stile 8 bit" loading="eager" decoding="async">
+            </div>
+            <div class="scribe-gate-flash" aria-hidden="true"></div>
+            <img class="scribe-gate-character" id="scribe-gate-character" src="https://image.qwenlm.ai/public_source/2c4db40c-35bf-4fd3-aefe-a6371e373bc3/1e0a3ca1f-95d7-4cee-9fc8-12789d4f17a0.png" alt="Scriba egiziano in stile 8 bit">
+        </div>
+        <button class="scribe-gate-next" id="scribe-gate-next" type="button" onclick="showIntermediate()">AVANTI</button>
+        <button class="back-choice" type="button" onclick="backToStart()">&larr; INDIETRO</button>
     </section>
 
     <section class="intermediate-screen" aria-label="Benvenuto ME-Scripta">
@@ -697,7 +867,8 @@
         let lastScreenBeforeGameOver = 'intro';
 
         function clearScreens() {
-            document.body.classList.remove('show-intro', 'show-level-two', 'show-confirm', 'show-game-over', 'show-main', 'show-intermediate');
+            clearScribeGateTimers();
+            document.body.classList.remove('show-scribe', 'show-intro', 'show-level-two', 'show-confirm', 'show-game-over', 'show-main', 'show-intermediate');
         }
 
         function openIntro() {
@@ -743,6 +914,71 @@
 
         function backToStart() {
             clearScreens();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        const scribeGateImages = {
+            walk: "https://image.qwenlm.ai/public_source/2c4db40c-35bf-4fd3-aefe-a6371e373bc3/1e0a3ca1f-95d7-4cee-9fc8-12789d4f17a0.png",
+            photo: "https://image.qwenlm.ai/public_source/2c4db40c-35bf-4fd3-aefe-a6371e373bc3/187d47617-daef-4de1-909b-13d1cbc323d1.png"
+        };
+        let scribeGateTimers = [];
+
+        function clearScribeGateTimers() {
+            scribeGateTimers.forEach((timer) => clearTimeout(timer));
+            scribeGateTimers = [];
+        }
+
+        function queueScribeGateStep(delay, callback) {
+            scribeGateTimers.push(setTimeout(callback, delay));
+        }
+
+        function playScribeGate() {
+            const scene = document.getElementById('scribe-gate-scene');
+            const character = document.getElementById('scribe-gate-character');
+            const status = document.getElementById('scribe-gate-status');
+            const nextButton = document.getElementById('scribe-gate-next');
+            if (!scene || !character || !status) return;
+
+            clearScribeGateTimers();
+            scene.classList.remove('is-running', 'is-framing', 'is-flashing', 'is-leaving', 'is-done');
+            if (nextButton) nextButton.classList.remove('is-visible');
+            character.src = scribeGateImages.walk;
+            status.textContent = 'LO SCRIBA ARRIVA...';
+
+            void scene.offsetWidth;
+            scene.classList.add('is-running');
+
+            queueScribeGateStep(3900, () => {
+                scene.classList.remove('is-running');
+                scene.classList.add('is-framing');
+                character.src = scribeGateImages.photo;
+                status.textContent = 'METTE A FUOCO...';
+            });
+
+            queueScribeGateStep(5200, () => {
+                scene.classList.add('is-flashing');
+                status.textContent = 'SCATTO!';
+            });
+
+            queueScribeGateStep(6100, () => {
+                scene.classList.remove('is-framing', 'is-flashing');
+                scene.classList.add('is-leaving');
+                character.src = scribeGateImages.walk;
+                status.textContent = 'MISSIONE COMPIUTA.';
+            });
+
+            queueScribeGateStep(8500, () => {
+                scene.classList.remove('is-leaving');
+                scene.classList.add('is-done');
+                status.textContent = 'PAPIRO FOTOGRAFATO.';
+                if (nextButton) nextButton.classList.add('is-visible');
+            });
+        }
+
+        function showScribeGate() {
+            clearScreens();
+            document.body.classList.add('show-scribe');
+            playScribeGate();
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
@@ -1439,10 +1675,6 @@
     </script>
 </body>
 </html>
-
-
-
-
 
 
 
