@@ -868,7 +868,7 @@
         <div class="ba-game-card" aria-hidden="true">
             <img class="ba-game-img" src="Bà 8bit livello 0.png" alt="Ba spirit livello 0 in stile 8 bit">
         </div>
-        <div class="intro-question">Vuoi sapere chi sono?</div>
+        <div class="intro-question">Chi sono?</div>
         <div class="choice-actions">
             <button class="choice-card" type="button" onclick="showLevelTwo()" style="display:flex;align-items:center;justify-content:center;font-size:clamp(1em,3vw,1.3em);letter-spacing:1px;">L'anima del defunto</button>
             <button class="choice-card" type="button" onclick="showGameOver('intro')" style="display:flex;align-items:center;justify-content:center;font-size:clamp(1em,3vw,1.3em);letter-spacing:1px;">Una divinità</button>
@@ -916,6 +916,9 @@
 
     <main class="main-experience" aria-label="Scheda del papiro">
 
+    <div style="padding:8px 16px 0;text-align:left;">
+        <button class="back-choice" type="button" onclick="history.back()">← INDIETRO</button>
+    </div>
     <div class="top-bar">
         <div class="lang-switch">
             <button id="btn-it" class="lang-btn active" onclick="changeLang('it')" aria-label="Lingua italiana">
@@ -1030,12 +1033,12 @@
     <div class="ai-section fade-in-section">
         <h3 class="ai-title" id="faq-section-title">Chiedi all'AI</h3>
         <div class="ai-suggestions" id="ai-suggestions"></div>
-        <div class="ai-response" id="ai-response"><div class="ai-scroll" id="ai-scroll"><div id="ai-response-text"></div></div></div>
         <div class="ai-form-wrap" style="width:100%;max-width:600px;">
             <div class="ai-form">
             <textarea class="ai-input" id="ai-question" rows="2" placeholder="Fai una domanda sul papiro..."></textarea>
             <button class="ai-submit" id="ai-submit" onclick="askGemini()" style="font-weight: bold; font-size: 1.2em; display: flex; align-items: center; justify-content: center; gap: 10px;">𓃣 𓂀 CHIEDI</button>
         </div>
+        <div class="ai-response" id="ai-response"><div class="ai-scroll" id="ai-scroll"><div id="ai-response-text"></div></div></div>
         <div class="ai-note" id="ai-note">L'assistente risponde usando le informazioni della scheda e una ricerca locale per parole chiave.</div>
     </div>
 
