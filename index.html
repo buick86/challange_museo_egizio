@@ -783,7 +783,7 @@
             <div class="scribe-gate-flash" aria-hidden="true"></div>
             <img class="scribe-gate-character" id="scribe-gate-character" src="https://image.qwenlm.ai/public_source/2c4db40c-35bf-4fd3-aefe-a6371e373bc3/1e0a3ca1f-95d7-4cee-9fc8-12789d4f17a0.png" alt="Scriba egiziano in stile 8 bit">
         </div>
-        <button class="scribe-gate-next" id="scribe-gate-next" type="button" onclick="openIntro()">ORA TOCCA A TE CONOSCERE ME SCRIPTA</button>
+        <button class="scribe-gate-next" id="scribe-gate-next" type="button" onclick="openIntro()">FAI IL QUIZ</button>
         <button class="back-choice" type="button" onclick="backToStart()">&larr; INDIETRO</button>
     </section>
 
@@ -1175,16 +1175,7 @@
         }
 
         function showHub() {
-            clearScreens();
-            document.body.classList.add('show-hub');
-            window.scrollTo({top:0,behavior:'smooth'});
-            var wrap = document.getElementById('hub-iframe-wrap');
-            if(wrap && !wrap.querySelector('iframe')){
-                var ifr = document.createElement('iframe');
-                ifr.src = 'hub_standalone.html';
-                ifr.style.cssText = 'width:100%;height:100vh;border:none;display:block;';
-                wrap.appendChild(ifr);
-            }
+            showScribeGate();
         }
 
         // Listen for hub button messages
@@ -1268,7 +1259,7 @@
         }
 
         function backToStart() {
-            showHub();
+            showScribeGate();
         }
 
         const scribeGateImages = {
